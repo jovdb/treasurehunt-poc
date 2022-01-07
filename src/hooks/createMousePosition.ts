@@ -2,17 +2,17 @@ import {
   createSignal, onMount, onCleanup, batch,
 } from "solid-js";
 
-export function useMousePosition() {
+export function createMousePosition() {
   const [x, setX] = createSignal(0);
   const [y, setY] = createSignal(0);
+  const [buttons, setButtons] = createSignal(0);
 
   function onMouseMove(e: MouseEvent) {
-    if (e.buttons === 1) {
-      batch(() => {
-        setX(e.pageX);
-        setY(e.pageY);
-      });
-    }
+    batch(() => {
+      setX(e.pageX);
+      setY(e.pageY);
+      setButtons(e.buttons);
+    });
   }
 
   onMount(() => {
@@ -23,5 +23,5 @@ export function useMousePosition() {
     window.removeEventListener("mousemove", onMouseMove);
   });
 
-  return [x, y] as const;
+  return [x, y, buttons] as const;
 }

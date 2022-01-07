@@ -1,12 +1,18 @@
-import type { Component } from "solid-js";
-import { useMousePosition } from "./hooks/useMousePosition";
+import { Component, createMemo } from "solid-js";
+import { createMousePosition } from "./hooks/createMousePosition";
 
 import styles from "./App.module.css";
 import { throttleSignals } from "./utils/signal-helpers";
 
 const App: Component = () => {
-  const [x1, y1] = useMousePosition();
-  const [x, y] = throttleSignals([x1, y1], 400);
+  const [mouseX, mouseY, buttons] = createMousePosition();
+
+  // Only use mouse cooredinates while mouse down
+  const dragX = createMemo<number>((prev) => (buttons() === 1 ? mouseX() : prev || 0));
+  const dragY = createMemo<number>((prev) => (buttons() === 1 ? mouseY() : prev || 0));
+
+  // Throttle position to simulate geo coordinates
+  const [x, y] = throttleSignals([dragX, dragY], 400);
 
   return (
     <div class={styles.App}>
