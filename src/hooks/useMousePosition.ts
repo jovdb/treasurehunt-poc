@@ -1,4 +1,6 @@
-import { createSignal, onMount, onCleanup, batch } from 'solid-js';
+import {
+  createSignal, onMount, onCleanup, batch,
+} from "solid-js";
 
 export function useMousePosition() {
   const [x, setX] = createSignal(0);
@@ -21,5 +23,5 @@ export function useMousePosition() {
     window.removeEventListener("mousemove", onMouseMove);
   });
 
-  return [x, y];
+  return [x, y] as const;
 }
