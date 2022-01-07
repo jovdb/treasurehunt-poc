@@ -6,7 +6,7 @@ import eslintPlugin from "vite-plugin-eslint";
 export default defineConfig({
   plugins: [
     solidPlugin(),
-    eslintPlugin(),
+    eslintPlugin({ cache: false }),
   ],
   build: {
     target: "esnext",
