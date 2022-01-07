@@ -1,11 +1,14 @@
 import type { Component } from 'solid-js';
+import { useMousePosition } from './hooks/useMousePosition';
 
 import styles from './App.module.css';
 
 const App: Component = () => {
+  const [x, y] = useMousePosition();
+
   return (
     <div class={styles.App}>
-      Hello Jo
+      Position: {x}, {y}
     </div>
   );
 };
