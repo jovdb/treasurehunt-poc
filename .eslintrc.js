@@ -6,6 +6,7 @@ module.exports = {
   extends: [
     "airbnb-base",
     "plugin:solid/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
   ],
   ignorePatterns: [
     "dist",
@@ -14,6 +15,7 @@ module.exports = {
   parser: "@typescript-eslint/parser",
   parserOptions: {
     ecmaVersion: 12,
+    project: './tsconfig.json', // Specify it only for TypeScript files
     sourceType: "module",
   },
   plugins: [
