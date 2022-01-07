@@ -7,7 +7,7 @@
     "build": "vite build",
     "serve": "vite preview",
     "eslint": "eslint . --ext .ts,.tsx",
-    "eslint:fix": "eslint . --ext .ts,.tsx --fix" 
+    "eslint:fix": "eslint . --ext .ts,.tsx --fix"
   },
   "license": "MIT",
   "devDependencies": {
@@ -23,6 +23,7 @@
     "vite-plugin-solid": "^2.2.1"
   },
   "dependencies": {
+    "lemonade-spring": "^1.0.61",
     "solid-js": "^1.3.1"
   }
 }
