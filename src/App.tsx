@@ -10,7 +10,9 @@ const App: Component = () => {
 
   return (
     <div class={styles.App}>
-      Position: {x()}, {y()}
+      <svg class={styles.App_svg}>
+        <circle cx={x()} cy={y()} r={3} fill="red" />
+      </svg>
     </div>
   );
 };
