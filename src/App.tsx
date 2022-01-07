@@ -13,16 +13,18 @@ const App: Component = () => {
   const dragY = createMemo<number>((prev) => (buttons() === 1 ? mouseY() : prev || 0));
 
   // Throttle position to simulate geo coordinates
-  const [throttledX, throttledY] = throttleSignals([dragX, dragY], 400);
+  const [throttledX, throttledY] = throttleSignals([dragX, dragY], 200);
 
   // Animate to the new location
-  const [x] = createSpringValue(throttledX);
-  const [y] = createSpringValue(throttledY);
+  const [x] = createSpringValue(throttledX, { mass: 10 });
+  const [y] = createSpringValue(throttledY, { mass: 10 });
 
   return (
     <div class={styles.App}>
       <svg class={styles.App_svg}>
-        <circle cx={x()} cy={y()} r={5} fill="red" />
+        <circle cx={dragX()} cy={dragY()} r={5} fill="rgba(0,128,0,0.2)" />
+        <circle cx={throttledX()} cy={throttledY()} r={5} fill="rgba(0,0,255,0.2)" />
+        <circle cx={x()} cy={y()} r={5} fill="rgba(255,0,0,0.4)" />
       </svg>
     </div>
   );
