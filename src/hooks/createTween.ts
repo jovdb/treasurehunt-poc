@@ -14,27 +14,40 @@ import {
  * const tweenedValue = createTween(myNumber, { duration: 500 });
  * ```
  */
-export function createTween<T extends number>(
-  target: () => T,
-  { ease = (t: T) => t, duration = 100 },
+export function createTween(
+  target: () => number,
+  {
+    ease = (t: number) => t,
+    duration = 100,
+  } = {},
 ) {
   const [start, setStart] = createSignal(document.timeline.currentTime);
-  const [current, setCurrent] = createSignal<T>(target());
+  const [current, setCurrent] = createSignal(target());
+  const [isBusy, setIsBusy] = createSignal<boolean>(false);
+
+  // Set Start time on change (no at initial run)
   createEffect(on(target, () => setStart(document.timeline.currentTime), { defer: true }));
+
+  // Start interpolation
   createEffect(
     on([start, current], () => {
       const cancelId = requestAnimationFrame((t) => {
         const elapsed = t - (start() || 0) + 1;
-        setCurrent((c) => (
+        const isStillBusy = elapsed < duration;
+
+        setIsBusy(isStillBusy);
+        setCurrent((c: any) => (
           // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-          elapsed < duration
+          isStillBusy
             // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-            ? (target() - c) * ease((elapsed / duration) as T) + c
+            ? (target() - c) * ease(elapsed / duration) + c
             : target()
         ));
       });
+
       onCleanup(() => cancelAnimationFrame(cancelId));
     }),
   );
-  return current;
+
+  return [current, isBusy] as const;
 }
