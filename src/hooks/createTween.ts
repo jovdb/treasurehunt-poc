@@ -30,23 +30,38 @@ export function createTween(
 
   // Start interpolation
   createEffect(
-    on([start, current], () => {
-      const cancelId = requestAnimationFrame((t) => {
+    on([start], () => {
+      // Start RAF until completed or a new value is received
+      let cancelRafId = 0;
+      function tick(t = 0) {
         const elapsed = t - (start() || 0) + 1;
         const isStillBusy = elapsed < duration;
 
         setIsBusy(isStillBusy);
         setCurrent((c: any) => (
+          // If value does is not change, it will not trigger a new current update, so loop stops
           // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-          isStillBusy
+          elapsed < duration
             // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
             ? (target() - c) * ease(elapsed / duration) + c
             : target()
         ));
-      });
 
-      onCleanup(() => cancelAnimationFrame(cancelId));
-    }),
+        // Next tick
+        if (elapsed < duration) {
+          cancelRafId = requestAnimationFrame(tick);
+        }
+      }
+
+      // Start animation loop
+      tick();
+
+      // On Cancel stop pending RAF
+      onCleanup(() => {
+        // TODO? setComplete(spring.completed);
+        cancelAnimationFrame(cancelRafId);
+      });
+    }, { defer: true }),
   );
 
   return [current, isBusy] as const;
