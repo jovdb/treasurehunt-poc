@@ -1,6 +1,6 @@
 /* eslint-disable no-debugger */
 import {
-  Component, createMemo, createSignal,
+  Component, createMemo, createSignal, For,
 } from "solid-js";
 
 import { createMousePosition } from "./hooks/createMousePosition";
@@ -10,6 +10,7 @@ import { createSpringValue } from "./hooks/createSpring";
 import styles from "./App.module.css";
 import { SignalLogger } from "./components/SignalLogger/SignalLogger";
 import { createTween } from "./hooks/createTween";
+import { state } from "./store/store";
 
 const App: Component = () => {
   const [mouseX, mouseY, buttons] = createMousePosition();
@@ -37,6 +38,9 @@ const App: Component = () => {
             <circle cx={dragX()} cy={dragY()} r={5} fill="rgba(0,128,0,0.2)" />
             <circle cx={throttledX()} cy={throttledY()} r={5} fill="rgba(0,0,255,0.2)" />
             <circle cx={x()} cy={y()} r={5} fill="rgba(255,0,0,0.4)" />
+            <For each={state.waypoints}>{(waypoint) => (
+              <circle cx={waypoint.latitude} cy={waypoint.longitude} r={10} fill="blue" />
+            )}</For>
           </svg>
         )
       }
