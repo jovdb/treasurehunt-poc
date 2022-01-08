@@ -1,8 +1,6 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable max-len */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
-  createSignal, createEffect, on, Accessor, onCleanup,
+  createSignal, createEffect, on, Accessor, onCleanup, batch,
 } from "solid-js";
 
 import createSpring from "lemonade-spring";
@@ -53,14 +51,18 @@ export function createSpringValue(
   target: Accessor<number>,
   options?: ISpringOptions<number>,
 ) {
-  const [current, setCurrent] = createSignal<number>(target());
+  const [current, setCurrent] = createSignal(target());
+  const [isBusy, setIsBusy] = createSignal(false);
 
   // Create a spring value
   const spring = createSpring(target(), {
     ...options,
     onUpdate: (newValue: number) => {
-      setCurrent(newValue as any);
-      if (options?.onUpdate) options.onUpdate(newValue);
+      batch(() => {
+        setCurrent(newValue as any);
+        setIsBusy(!spring.completed);
+        if (options?.onUpdate) options.onUpdate(newValue);
+      });
     },
   }) as ISpring<number>;
 
@@ -82,11 +84,12 @@ export function createSpringValue(
 
     // On Cancel stop pending RAF
     onCleanup(() => {
+      // TODO? setComplete(spring.completed);
       cancelAnimationFrame(cancelRafId);
     });
-  }, { defer: true })); // Don't animate from default value
+  }, { defer: true })); // Don't animate from initial value
 
-  return [current, spring] as const;
+  return [current, isBusy, spring] as const;
 }
 
 // TODO: support object // array
