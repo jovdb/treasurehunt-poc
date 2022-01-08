@@ -8,6 +8,7 @@ import { throttleSignals } from "./utils/signal-helpers";
 import { createSpringValue } from "./hooks/createSpring";
 
 import styles from "./App.module.css";
+import { SignalLogger } from "./components/SignalLogger/SignalLogger";
 import { createTween } from "./hooks/createTween";
 
 const App: Component = () => {
@@ -46,6 +47,12 @@ const App: Component = () => {
       >
         {showCircles() ? "Hide" : "Show"}
       </button>
+
+      <SignalLogger
+        obj={{
+          showCircles, opacityState, opacitySpringValue, opacityIsBusy,
+        }}
+      />
     </div>
   );
 };
