@@ -9,7 +9,6 @@ import { createSpringValue } from "./hooks/createSpring";
 
 import styles from "./App.module.css";
 import { SignalLogger } from "./components/SignalLogger/SignalLogger";
-import { createTween } from "./hooks/createTween";
 import { state } from "./store/store";
 
 const App: Component = () => {
@@ -28,7 +27,7 @@ const App: Component = () => {
 
   const [showCircles, setShowCircles] = createSignal(true);
   const opacityState = createMemo(() => (showCircles() ? 1 : 0));
-  const [opacitySpringValue, opacityIsBusy] = createTween(opacityState);
+  const [opacitySpringValue, opacityIsBusy] = createSpringValue(opacityState, { mass: 10 });
 
   return (
     <div class={styles.App}>
