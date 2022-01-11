@@ -1,6 +1,13 @@
 /** Represents a displacement */
+export interface IVector {
+  width: number;
+  height: number;
+}
+
 export class Vector {
-  private constructor(public width: number, public height: number) {}
+  private constructor(public width: number, public height: number) {
+    // Empty
+  }
 
   static create = (width: number, height: number) => new this(width, height);
 
@@ -23,7 +30,7 @@ export class Vector {
   }
 
   public getAngleDeg() {
-    return this.getAngleRad() * 180 / Math.PI;
+    return (this.getAngleRad() * 180) / Math.PI;
   }
 
   /** Returns that absolute aspectRatio, 0 when width or height are 0 */
@@ -42,9 +49,4 @@ export class Vector {
   public toString() {
     return `vector(${this.width}, ${this.height})`;
   }
-}
-
-export interface IVector {
-  width: number;
-  height: number;
 }

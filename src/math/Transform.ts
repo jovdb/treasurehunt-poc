@@ -1,26 +1,5 @@
 import { areSimilar } from "./Number";
 
-function multiplyTransform(m1: ITransform, m2: ITransform) {
-  /*
-  ┌─       ─┐   ┌─       ─┐   ┌─                              ─┐   ┌─                       ─┐
-  │ a  c  e │   │ g  i  k │   │ ag+ch+e0   ai+cj+e0   ak+cl+e1 │   │ ag+ch   ai+cj   ak+cl+e │
-  │ b  d  f │ * │ h  j  l │ = │ bg+dh+f0   bi+dj+f0   bk+dl+f1 │ = │ bg+dh   bi+dj   bk+dl+f │
-  │ 0  0  1 │   │ 0  0  1 │   │ 0g+0h+00   0i+0j+00   0k+0l+11 │   │ 0       0       1       │
-  └─       ─┘   └─       ─┘   └─                              ─┘   └─                       ─┘
-  */
-
-  return Transform.create(
-    m1.a * m2.a + m1.c * m2.b,
-    m1.b * m2.a + m1.d * m2.b,
-    m1.a * m2.c + m1.c * m2.d,
-    m1.b * m2.c + m1.d * m2.d,
-    m1.a * m2.e + m1.c * m2.f + m1.e,
-    m1.b * m2.e + m1.d * m2.f + m1.f,
-  );
-}
-
-const radToDegFactor = Math.PI / 180;
-
 /*
 ┌─       ─┐
 │ a  c  e │
@@ -37,15 +16,38 @@ export interface ITransform {
   f: number;
 }
 
+function multiplyTransform(m1: ITransform, m2: ITransform) {
+  /*
+  ┌─       ─┐   ┌─       ─┐   ┌─                              ─┐   ┌─                       ─┐
+  │ a  c  e │   │ g  i  k │   │ ag+ch+e0   ai+cj+e0   ak+cl+e1 │   │ ag+ch   ai+cj   ak+cl+e │
+  │ b  d  f │ * │ h  j  l │ = │ bg+dh+f0   bi+dj+f0   bk+dl+f1 │ = │ bg+dh   bi+dj   bk+dl+f │
+  │ 0  0  1 │   │ 0  0  1 │   │ 0g+0h+00   0i+0j+00   0k+0l+11 │   │ 0       0       1       │
+  └─       ─┘   └─       ─┘   └─                              ─┘   └─                       ─┘
+  */
+
+  // eslint-disable-next-line no-use-before-define
+  return Transform.create(
+    m1.a * m2.a + m1.c * m2.b,
+    m1.b * m2.a + m1.d * m2.b,
+    m1.a * m2.c + m1.c * m2.d,
+    m1.b * m2.c + m1.d * m2.d,
+    m1.a * m2.e + m1.c * m2.f + m1.e,
+    m1.b * m2.e + m1.d * m2.f + m1.f,
+  );
+}
+
+const radToDegFactor = Math.PI / 180;
+
 export class Transform {
   private constructor(
-    public readonly a,
-    public readonly b,
-    public readonly c,
-    public readonly d,
-    public readonly e,
-    public readonly f,
+    public readonly a: number,
+    public readonly b: number,
+    public readonly c: number,
+    public readonly d: number,
+    public readonly e: number,
+    public readonly f: number,
   ) {
+    // Empty
   }
 
   static identity = Transform.create(1, 0, 0, 1, 0, 0);

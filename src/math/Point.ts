@@ -4,8 +4,11 @@ export interface IPoint {
   left: number;
   top: number;
 }
+
 export class Point {
-  private constructor(public left: number, public top: number) {}
+  private constructor(public left: number, public top: number) {
+    // Empty
+  }
 
   static create = (left: number, top: number) => new this(left, top);
 

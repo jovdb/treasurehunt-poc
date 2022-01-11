@@ -9,7 +9,9 @@ export interface IRect {
 }
 
 export class Rect {
-  private constructor(public left: number, public top: number, public width: number, public height: number) {}
+  private constructor(public left: number, public top: number, public width: number, public height: number) {
+    // Empty
+  }
 
   static zero = new this(0, 0, 0, 0);
 
@@ -47,6 +49,7 @@ export class Rect {
    */
   static fromPoints(points: readonly IPoint[]) {
     if (!points || points.length <= 0) throw new Error("Cannot calculate bounds when no points are available.");
+    // eslint-disable-next-line no-new
     if (points.length === 1) new this(points[0].left, points[0].top, 0, 0);
     if (points.length === 2) new this(points[0].left, points[0].top, points[1].left, points[1].top).normalize();
 
@@ -55,12 +58,12 @@ export class Rect {
     let x2 = points[0].left;
     let y2 = points[0].top;
 
-    for (const point of points) {
+    points.forEach((point) => {
       if (point.left < x1) x1 = point.left;
       if (point.top < y1) y1 = point.top;
       if (point.left > x2) x2 = point.left;
       if (point.top > y2) y2 = point.top;
-    }
+    });
 
     return new this(x1, y1, x2 - x1, y2 - y1);
   }
@@ -78,7 +81,7 @@ export class Rect {
     let x2 = -Infinity;
     let y2 = -Infinity;
 
-    for (const rect of rects) {
+    rects.forEach((rect) => {
       const normalizedRect = Rect.normalize(rect);
       const right = normalizedRect.left + normalizedRect.width;
       const bottom = normalizedRect.top + normalizedRect.height;
@@ -86,7 +89,7 @@ export class Rect {
       if (normalizedRect.top < y1) y1 = normalizedRect.top;
       if (right > x2) x2 = right;
       if (bottom > y2) y2 = bottom;
-    }
+    });
 
     return new this(x1, y1, x2 - x1, y2 - y1);
   }
@@ -116,6 +119,7 @@ export class Rect {
     if (typeof arg === "function") {
       arg(this);
     } else {
+      // eslint-disable-next-line no-console
       console.log(arg, this.toString());
     }
     return this;
@@ -131,7 +135,7 @@ export class Rect {
 
   /** Compare the values of 2 rects */
   public areSimilar(rect: IRect, epsilon = 1e-6) {
-    return Rect.areSimilar(this, rect);
+    return Rect.areSimilar(this, rect, epsilon);
   }
 
   public toString() {

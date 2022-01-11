@@ -1,9 +1,10 @@
 // https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
 
-import { Rect, IRect } from "../Rect";
+import { Rect } from "../Rect";
 import { Transform } from "../Transform";
 
 declare module "../Rect" {
+  // eslint-disable-next-line no-shadow
   interface Rect {
     /** Apply transform on this rectangle */
     transform(this: Rect, transform: Transform): Rect;
@@ -17,14 +18,15 @@ declare module "../Rect" {
 }
 
 declare module "../Transform" {
+  // eslint-disable-next-line no-shadow
   interface Transform {
     applyToRect(this: Transform, rect: Rect): Rect;
   }
 }
 
-Rect.prototype.transform = function transform(this, transform) {
-  const [left, top] = Transform.transform(transform, this.left, this.top);
-  const [width, height] = Transform.transform(transform, this.width, this.height, 0); // w=0 ignore translations
+Rect.prototype.transform = function transform(this, applyTransform) {
+  const [left, top] = Transform.transform(applyTransform, this.left, this.top);
+  const [width, height] = Transform.transform(applyTransform, this.width, this.height, 0); // w=0 ignore translations
   return Rect.create(left, top, width, height);
 };
 

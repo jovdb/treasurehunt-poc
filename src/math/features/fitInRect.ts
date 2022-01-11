@@ -35,6 +35,7 @@ export function getFitInRectTransform(
 }
 
 declare module "../Rect" {
+  // eslint-disable-next-line no-shadow
   interface Rect {
     fitRectTransform(this: Rect, rectToFit: Rect): Transform;
     fitRect(this: Rect, rectToFit: Rect): Rect;
