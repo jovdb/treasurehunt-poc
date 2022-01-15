@@ -17,7 +17,7 @@ export const [state, setState] = createStore<IStore>({
   {
     id: WaypointId.fromString("a"),
     latitude: 150,
-    longitude: 250,
+    longitude: 350,
     type: "test",
   },
   {
