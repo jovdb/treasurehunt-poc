@@ -10,8 +10,8 @@ export const SignalLogger = (props: {
   const keys = Object.keys(props.obj);
   return (
     <For each={keys}>{(key) => (
-      <div>
-        {key}: {`${props.obj[key]()}`}
+      <div style={{ "font-family": "monospace", "font-size": "7px", color: "#888" }}>
+        <strong>{key}</strong>: {`${props.obj[key]()}`}
       </div>
     )}</For>
   );

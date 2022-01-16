@@ -16,7 +16,9 @@ export function createMousePosition() {
   }
 
   onMount(() => {
-    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mousemove", onMouseMove, {
+      passive: true,
+    });
   });
 
   onCleanup(() => {
