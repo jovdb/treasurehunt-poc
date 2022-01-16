@@ -14,6 +14,7 @@ import { SignalLogger } from "../SignalLogger/SignalLogger";
 import { createGeoSimulation } from "../../hooks/createGeoSimulation";
 import { Waypoints } from "../../types/WayPoint";
 import { WaypointId } from "../../types/WayPointId";
+import { createSpringValue } from "../../hooks/createSpring";
 
 export const TopView = () => {
   const [svgRect, setSvgRect] = createSignal(Rect.zero);
@@ -22,11 +23,18 @@ export const TopView = () => {
   const locationBounds = createMemo(() => Rect.fromPoints(state.waypoints.map((loc) => Point.create(loc.longitude, loc.latitude))));
   const locationsToScreenTransform = createMemo(() => viewRect().fitRectTransform(locationBounds()));
 
+  // Simulate GPS location
   const [myX, myY] = createGeoSimulation();
-  const myPosition = createMemo(() => Point
+  const myLocation = createMemo(() => Point
     .create(myX(), myY())
     .transform(locationsToScreenTransform().inverse())
     .toTuple());
+
+  // Animate to new position
+  const myLon = createMemo(() => myLocation()[0] || 0);
+  const myLat = createMemo(() => myLocation()[1] || 0);
+  const [smoothLon] = createSpringValue(myLon);
+  const [smoothLat] = createSpringValue(myLat);
 
   const refCallback = createResizeObserver({
     onResize: (size) => setSvgRect(Rect.create(0, 0, size.width, size.height)),
@@ -35,8 +43,8 @@ export const TopView = () => {
   const myWaypoint = createMemo<Waypoints>(() => ({
     id: WaypointId.fromString("me"),
     type: "test",
-    longitude: myPosition()[0],
-    latitude: myPosition()[1],
+    longitude: smoothLon(),
+    latitude: smoothLat(),
   }));
 
   return (
@@ -62,6 +70,8 @@ export const TopView = () => {
           locationBounds,
           locationsToScreenTransform,
           myX,
+          myLon,
+          smoothLon,
           myWaypoint: createMemo(() => JSON.stringify(myWaypoint())),
         }} />
       </div>
