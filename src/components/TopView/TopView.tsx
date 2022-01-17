@@ -14,6 +14,7 @@ import { SignalLogger } from "../SignalLogger/SignalLogger";
 import { createGeoSimulation } from "../../hooks/createGeoSimulation";
 import { createSpringValue } from "../../hooks/createSpring";
 import { MyWayPoint } from "../MyLocation/MyLocation";
+import { CoinWaypoint } from "../CoinWaypoint/CoinWaypoint";
 
 export const TopView = () => {
   const [svgRect, setSvgRect] = createSignal(Rect.zero);
@@ -56,7 +57,7 @@ export const TopView = () => {
             .create(waypoint.longitude, waypoint.latitude)
             .transform(locationsToScreenTransform()));
 
-          return <circle cx={point().left} cy={point().top} r={10} fill="blue" />;
+          return <CoinWaypoint x={point().left} y={point().top} />;
         }}</For>
 
         <MyWayPoint gender="male" x={myPosition().left} y={myPosition().top} />

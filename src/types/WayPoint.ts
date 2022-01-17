@@ -10,4 +10,7 @@ export interface IWaypoint<TType extends string> extends ILocation {
   id: WaypointId;
 }
 
-export type Waypoints = IWaypoint<"test">;
+export interface ICoinWaypoint extends IWaypoint<"coin"> {
+}
+
+export type Waypoints = ICoinWaypoint;

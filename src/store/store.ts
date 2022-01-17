@@ -12,18 +12,18 @@ export const [state, setState] = createStore<IStore>({
     id: WaypointId.fromString("a"),
     latitude: 100,
     longitude: 200,
-    type: "test",
+    type: "coin",
   },
   {
     id: WaypointId.fromString("a"),
     latitude: 150,
     longitude: 350,
-    type: "test",
+    type: "coin",
   },
   {
     id: WaypointId.fromString("a"),
     latitude: 300,
     longitude: 200,
-    type: "test",
+    type: "coin",
   }],
 });
