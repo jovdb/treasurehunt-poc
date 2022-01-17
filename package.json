@@ -28,6 +28,7 @@
     "vite-plugin-solid": "^2.2.1"
   },
   "dependencies": {
+    "@solid-primitives/geolocation": "^1.0.7",
     "@solid-primitives/resize-observer": "^1.0.4",
     "lemonade-spring": "^1.0.61",
     "solid-js": "^1.3.1"

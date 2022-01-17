@@ -1,20 +1,22 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 
 import createResizeObserver from "@solid-primitives/resize-observer";
+import { createGeolocationWatcher } from "@solid-primitives/geolocation";
 import { createMemo, createSignal, For } from "solid-js";
+
 import { state } from "../../store/store";
 import { Point } from "../../math/Point";
 import { Rect } from "../../math/Rect";
-
 import "../../math/features/fitInRect";
 import "../../math/features/transformPoint";
 
-import styles from "./TopView.module.css";
 import { SignalLogger } from "../SignalLogger/SignalLogger";
 import { createGeoSimulation } from "../../hooks/createGeoSimulation";
 import { createSpringValue } from "../../hooks/createSpring";
 import { MyWayPoint } from "../MyLocation/MyLocation";
 import { CoinWaypoint } from "../CoinWaypoint/CoinWaypoint";
+
+import styles from "./TopView.module.css";
 
 export const TopView = () => {
   const [svgRect, setSvgRect] = createSignal(Rect.zero);
@@ -22,6 +24,8 @@ export const TopView = () => {
 
   const locationBounds = createMemo(() => Rect.fromPoints(state.waypoints.map((loc) => Point.create(loc.longitude, loc.latitude))));
   const locationsToScreenTransform = createMemo(() => viewRect().fitRectTransform(locationBounds()));
+
+  const [location, error] = createGeolocationWatcher(true);
 
   // Simulate GPS location
   const [myX, myY] = createGeoSimulation();
@@ -73,6 +77,7 @@ export const TopView = () => {
           myLocation,
           smoothLon,
         }} />
+        ERROR: {error()?.message}, LOC: {location()?.longitude}
       </div>
     </div>
   );
