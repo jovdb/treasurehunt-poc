@@ -2,7 +2,9 @@
 
 import createResizeObserver from "@solid-primitives/resize-observer";
 import { createGeolocationWatcher } from "@solid-primitives/geolocation";
-import { createMemo, createSignal, For } from "solid-js";
+import {
+  createMemo, createSignal, For, Match, Switch,
+} from "solid-js";
 
 import { state } from "../../store/store";
 import { Point } from "../../math/Point";
@@ -17,6 +19,7 @@ import { MyWayPoint } from "../MyLocation/MyLocation";
 import { CoinWaypoint } from "../CoinWaypoint/CoinWaypoint";
 
 import styles from "./TopView.module.css";
+import { GeoLocationError } from "../GeoLocationError";
 
 export const TopView = () => {
   const [svgRect, setSvgRect] = createSignal(Rect.zero);
@@ -53,19 +56,21 @@ export const TopView = () => {
       class={styles.TopView}
       ref={refCallback}
     >
-      <svg
-        class={styles.TopView_svg}
-      >
-        <For each={[...state.waypoints]}>{(waypoint) => {
-          const point = createMemo(() => Point
-            .create(waypoint.longitude, waypoint.latitude)
-            .transform(locationsToScreenTransform()));
+      <GeoLocationError code={error()?.code || 0} >
+        <svg
+          class={styles.TopView_svg}
+        >
+          <For each={[...state.waypoints]}>{(waypoint) => {
+            const point = createMemo(() => Point
+              .create(waypoint.longitude, waypoint.latitude)
+              .transform(locationsToScreenTransform()));
 
-          return <CoinWaypoint x={point().left} y={point().top} />;
-        }}</For>
+            return <CoinWaypoint x={point().left} y={point().top} />;
+          }}</For>
 
-        <MyWayPoint gender="male" x={myPosition().left} y={myPosition().top} />
-      </svg>
+          <MyWayPoint gender="male" x={myPosition().left} y={myPosition().top} />
+        </svg>
+      </GeoLocationError>
 
       <div style={{ position: "absolute", top: "10px", right: "10px" }}>
         <SignalLogger obj={{
@@ -77,7 +82,7 @@ export const TopView = () => {
           myLocation,
           smoothLon,
         }} />
-        ERROR: {error()?.message}, LOC: {location()?.longitude}
+        LOC: {location()?.longitude}
       </div>
     </div>
   );
