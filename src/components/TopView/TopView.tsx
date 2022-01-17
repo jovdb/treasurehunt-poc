@@ -12,9 +12,8 @@ import "../../math/features/transformPoint";
 import styles from "./TopView.module.css";
 import { SignalLogger } from "../SignalLogger/SignalLogger";
 import { createGeoSimulation } from "../../hooks/createGeoSimulation";
-import { Waypoints } from "../../types/WayPoint";
-import { WaypointId } from "../../types/WayPointId";
 import { createSpringValue } from "../../hooks/createSpring";
+import { MyWayPoint } from "../MyLocation/MyLocation";
 
 export const TopView = () => {
   const [svgRect, setSvgRect] = createSignal(Rect.zero);
@@ -40,12 +39,9 @@ export const TopView = () => {
     onResize: (size) => setSvgRect(Rect.create(0, 0, size.width, size.height)),
   });
 
-  const myWaypoint = createMemo<Waypoints>(() => ({
-    id: WaypointId.fromString("me"),
-    type: "test",
-    longitude: smoothLon(),
-    latitude: smoothLat(),
-  }));
+  const myPosition = createMemo(() => Point
+    .create(smoothLon(), smoothLat())
+    .transform(locationsToScreenTransform()));
 
   return (
     <div
@@ -55,13 +51,15 @@ export const TopView = () => {
       <svg
         class={styles.TopView_svg}
       >
-        <For each={[...state.waypoints, myWaypoint()]}>{(waypoint) => {
+        <For each={[...state.waypoints]}>{(waypoint) => {
           const point = createMemo(() => Point
             .create(waypoint.longitude, waypoint.latitude)
             .transform(locationsToScreenTransform()));
 
           return <circle cx={point().left} cy={point().top} r={10} fill="blue" />;
         }}</For>
+
+        <MyWayPoint gender="male" x={myPosition().left} y={myPosition().top} />
       </svg>
 
       <div style={{ position: "absolute", top: "10px", right: "10px" }}>
@@ -71,8 +69,8 @@ export const TopView = () => {
           locationsToScreenTransform,
           myX,
           myLon,
+          myLocation,
           smoothLon,
-          myWaypoint: createMemo(() => JSON.stringify(myWaypoint())),
         }} />
       </div>
     </div>
