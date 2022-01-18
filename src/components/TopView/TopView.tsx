@@ -33,26 +33,35 @@ export const TopView = () => {
 
   const [location, error] = createGeolocationWatcher(true);
 
-  // Simulate GPS location
-  const [myX, myY] = createGeoSimulation();
-  const myLocation = createMemo(() => Point
-    .create(myX(), myY())
-    .transform(locationsToScreenTransform().inverse())
-    .toTuple());
-
-  // Animate to new position
-  const myLon = createMemo(() => myLocation()[0] || 0);
-  const myLat = createMemo(() => myLocation()[1] || 0);
-  const [smoothLon] = createSpringValue(myLon, springSettings);
-  const [smoothLat] = createSpringValue(myLat, springSettings);
+  // Get screen location at drag
+  const [dragX, dragY] = createGeoSimulation();
 
   const refCallback = createResizeObserver({
     onResize: (size) => setSvgRect(Rect.create(0, 0, size.width, size.height)),
   });
 
-  const myPosition = createMemo(() => Point
-    .create(smoothLon(), smoothLat())
-    .transform(locationsToScreenTransform()));
+  // Animate screen position, not the GPS coordinate
+  const [myX, setMyX] = createSignal(0);
+  const [myY, setMyY] = createSignal(0);
+
+  // Get screen location from GPS location
+  createMemo(() => {
+    const myLocationOnScreen = Point
+      .create(location()?.longitude || 0, location()?.latitude || 0)
+      .transform(locationsToScreenTransform());
+
+    setMyX(myLocationOnScreen.left);
+    setMyY(myLocationOnScreen.top);
+  });
+
+  // When dragging, use it as target position
+  createMemo(() => {
+    setMyX(dragX() || 0);
+    setMyY(dragY() || 0);
+  });
+
+  const [smoothX] = createSpringValue(myX, springSettings);
+  const [smoothY] = createSpringValue(myY, springSettings);
 
   return (
     <div
@@ -71,7 +80,7 @@ export const TopView = () => {
             return <CoinWaypoint x={point().left} y={point().top} />;
           }}</For>
 
-          <MyWayPoint gender="male" x={myPosition().left} y={myPosition().top} />
+          <MyWayPoint gender="male" x={smoothX()} y={smoothY()} />
         </svg>
       </GeoLocationError>
 
@@ -80,12 +89,10 @@ export const TopView = () => {
           svgRect,
           locationBounds,
           locationsToScreenTransform,
+          dragX,
           myX,
-          myLon,
-          myLocation,
-          smoothLon,
+          smoothX,
         }} />
-        LOC: {location()?.longitude}
       </div>
     </div>
   );
