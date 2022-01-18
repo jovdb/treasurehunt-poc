@@ -14,12 +14,15 @@ import "../../math/features/transformPoint";
 
 import { SignalLogger } from "../SignalLogger/SignalLogger";
 import { createGeoSimulation } from "../../hooks/createGeoSimulation";
-import { createSpringValue } from "../../hooks/createSpring";
+import { createSpringValue, ISpringOptions } from "../../hooks/createSpring";
 import { MyWayPoint } from "../MyLocation/MyLocation";
 import { CoinWaypoint } from "../CoinWaypoint/CoinWaypoint";
 
 import styles from "./TopView.module.css";
 import { GeoLocationError } from "../GeoLocationError";
+
+const springSettings: ISpringOptions = {
+};
 
 export const TopView = () => {
   const [svgRect, setSvgRect] = createSignal(Rect.zero);
@@ -40,8 +43,8 @@ export const TopView = () => {
   // Animate to new position
   const myLon = createMemo(() => myLocation()[0] || 0);
   const myLat = createMemo(() => myLocation()[1] || 0);
-  const [smoothLon] = createSpringValue(myLon);
-  const [smoothLat] = createSpringValue(myLat);
+  const [smoothLon] = createSpringValue(myLon, springSettings);
+  const [smoothLat] = createSpringValue(myLat, springSettings);
 
   const refCallback = createResizeObserver({
     onResize: (size) => setSvgRect(Rect.create(0, 0, size.width, size.height)),

@@ -5,7 +5,7 @@ import {
 
 import createSpring from "lemonade-spring";
 
-interface ISpringOptions<T> {
+export interface ISpringOptions {
   /** Can either be a number, an array (mutated) or an simple object with no nesting (mutated) */
   startValue?: number;
   /** A number defining the mass of the spring. Default to 1 */
@@ -17,7 +17,7 @@ interface ISpringOptions<T> {
   /** A number defining the interval size in which the animation will considered completed. Default to 0.01. */
   precision?: number;
   /** A function that will be called after the update() call. Return the current value. */
-  onUpdate?: (newValue: T) => void
+  onUpdate?: (newValue: number) => void
   /** A function that will be called once the destValue is in range [destValue-precision, destValue+precision] */
   onComplete?: () => void
 }
@@ -49,7 +49,7 @@ interface ISpring<T> {
  */
 export function createSpringValue(
   target: Accessor<number>,
-  options?: ISpringOptions<number>,
+  options?: ISpringOptions,
 ) {
   const [current, setCurrent] = createSignal(target());
   const [isBusy, setIsBusy] = createSignal(false);
