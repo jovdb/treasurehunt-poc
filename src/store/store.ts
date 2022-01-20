@@ -1,9 +1,16 @@
 import { createStore } from "solid-js/store";
-import { Waypoints } from "../types/WayPoint";
+import { ILocation, Waypoints } from "../types/WayPoint";
 import { WaypointId } from "../types/WayPointId";
+
+interface IMe {
+  gender: "male" | "female" | undefined;
+  location: ILocation | undefined;
+  locationError: GeolocationPositionError | undefined;
+}
 
 interface IStore {
   waypoints: Waypoints[];
+  me: IMe | undefined;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -83,5 +90,37 @@ export const [state, setState] = createStore<IStore>({
       id: WaypointId.fromString("11"),
       latitude: 51.046605,
       longitude: 4.104639,
-    }],
+    },
+  ],
+  me: undefined,
 });
+
+export function setMyInfo(gender: IMe["gender"]) {
+  setState("me", (me) => {
+    if (!me) return { gender };
+    return {
+      ...me,
+      gender,
+    };
+  });
+}
+
+export function setMyLocation(
+  location: ILocation | undefined,
+  locationError: GeolocationPositionError | null,
+) {
+  setState("me", (me) => {
+    if (!me) {
+      return {
+        location,
+        locationError: locationError || undefined,
+      };
+    }
+
+    return {
+      ...me,
+      location,
+      locationError: locationError || undefined,
+    };
+  });
+}

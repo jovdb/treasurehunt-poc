@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   createSignal, createEffect, on, Accessor, onCleanup, batch,
 } from "solid-js";

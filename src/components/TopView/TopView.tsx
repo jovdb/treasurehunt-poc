@@ -1,13 +1,9 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 
 import createResizeObserver from "@solid-primitives/resize-observer";
-import { createGeolocationWatcher } from "@solid-primitives/geolocation";
-import {
-  Accessor,
-  createMemo, createSignal, For,
-} from "solid-js";
+import { createMemo, createSignal, For } from "solid-js";
 
-import { state } from "../../store/store";
+import { setMyInfo, state } from "../../store/store";
 import { Point } from "../../math/Point";
 import { Rect } from "../../math/Rect";
 
@@ -15,14 +11,13 @@ import "../../math/features/fitInRect";
 import "../../math/features/transformPoint";
 
 import { SignalLogger } from "../SignalLogger/SignalLogger";
-import { createDragCoordinates } from "../../hooks/createDragCoordinates";
 import { createSpringValue, ISpringOptions } from "../../hooks/createSpring";
 import { MyWayPoint } from "../MyLocation/MyLocation";
 import { CoinWaypoint } from "../CoinWaypoint/CoinWaypoint";
 
 import styles from "./TopView.module.css";
 import { GeoLocationError } from "../GeoLocationError";
-import { throttleSignals } from "../../utils/signal-helpers";
+import { createLocationWatcher } from "../../hooks/createLocationWatcher";
 
 const springSettings: ISpringOptions = {
 };
@@ -40,50 +35,31 @@ export const TopView = () => {
     .fromPoints(state.waypoints.map((loc) => Point.create(loc.longitude, loc.latitude))));
   const locationsToScreenTransform = createMemo(() => viewRect().fitRectTransform(locationBounds()));
 
-  const [location, error] = createGeolocationWatcher(true);
-
-  // Get Geo position from Drag
-  const [dragX, dragY] = createDragCoordinates();
-  // Throttle position to simulate geo coordinates intervals
-  const [throttledX, throttledY] = throttleSignals([dragX, dragY], 200) as [Accessor<number>, Accessor<number>];
-  // Convert to Geo locations
-  const simulatedLocation = createMemo(() => Point
-    .create(throttledX(), throttledY())
-    .transform(locationsToScreenTransform().inverse()));
-
-  // Location to use (simulated or real geo location)
-  const [myLon, setMyLon] = createSignal(0);
-  const [myLat, setMyLat] = createSignal(0);
-
-  // Get screen location from GPS location
-  createMemo(() => {
-    setMyLon(location()?.longitude || 0);
-    setMyLat(location()?.latitude || 0);
-  });
-
-  // When dragging, use it as target position
-  createMemo(() => {
-    setMyLon(simulatedLocation().left || 0);
-    setMyLat(simulatedLocation().top || 0);
-  });
+  // Set Location
+  createLocationWatcher(locationsToScreenTransform);
 
   // Convert location to screen coordinates
-  const myLocationOnScreen = createMemo(() => Point
-    .create(myLon() || 0, myLat() || 0)
-    .transform(locationsToScreenTransform()));
-  const myX = createMemo(() => myLocationOnScreen().left);
-  const myY = createMemo(() => myLocationOnScreen().top);
+  const myLocationOnScreen = createMemo(() => {
+    const mylocation = state.me?.location;
+    return Point
+      .create(mylocation?.longitude || 0, mylocation?.latitude || 0)
+      .transform(locationsToScreenTransform());
+  });
 
   // Animate to new values
+  const myX = createMemo(() => myLocationOnScreen().left);
+  const myY = createMemo(() => myLocationOnScreen().top);
   const [mySmoothX] = createSpringValue(myX, springSettings);
   const [mySmoothY] = createSpringValue(myY, springSettings);
+
+  setMyInfo("male");
 
   return (
     <div
       class={styles.TopView}
       ref={refCallback}
     >
-      <GeoLocationError code={error()?.code || 0} >
+      <GeoLocationError code={state.me?.locationError?.code || 0} >
         <svg
           class={styles.TopView_svg}
         >
@@ -95,7 +71,7 @@ export const TopView = () => {
             return <CoinWaypoint x={point().left} y={point().top} />;
           }}</For>
 
-          <MyWayPoint gender="male" x={mySmoothX()} y={mySmoothY()} />
+          <MyWayPoint gender={state.me?.gender ?? "male"} x={mySmoothX()} y={mySmoothY()} />
         </svg>
       </GeoLocationError>
 
@@ -104,10 +80,6 @@ export const TopView = () => {
           svgRect,
           locationBounds,
           locationsToScreenTransform,
-          dragX,
-          simulatedLocation,
-          location: createMemo(() => location()?.longitude),
-          myLon,
           myX,
           mySmoothX,
         }} />

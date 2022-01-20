@@ -32,5 +32,6 @@ module.exports = {
     "max-len":  ["error", { "ignoreStrings": true, "code": 200 }],
     "no-param-reassign": "off",
     "no-useless-constructor": "off",
+    "@typescript-eslint/no-unsafe-call": "off",
   },
 };
