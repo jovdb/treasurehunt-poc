@@ -95,12 +95,14 @@ export const TopView = () => {
         <svg
           class={styles.TopView_svg}
         >
-          <For each={getUncapturedWaypoints()}>{(waypoint) => {
+          <For each={state.waypoints}>{(waypoint) => {
             const point = createMemo(() => Point
               .create(waypoint.longitude, waypoint.latitude)
               .transform(locationsToScreenTransform()));
-
-            return <CoinWaypoint x={point().left} y={point().top} />;
+            // When captured, fade out
+            const targetOpacity = createMemo(() => (isCaptured(waypoint.id) ? 0 : 1));
+            const [opacity] = createSpringValue(targetOpacity, springSettings);
+            return opacity() && <CoinWaypoint x={point().left} y={point().top} opacity={opacity()}/>;
           }}</For>
 
           <MyWayPoint gender={state.me?.gender ?? "male"} x={mySmoothX()} y={mySmoothY()} />
