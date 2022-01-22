@@ -11,6 +11,7 @@ interface IMe {
 interface IStore {
   waypoints: Waypoints[];
   me: IMe | undefined;
+  captured: Record<WaypointId, boolean>; // Currently only true
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -93,6 +94,7 @@ export const [state, setState] = createStore<IStore>({
     },
   ],
   me: undefined,
+  captured: {},
 });
 
 export function setMyInfo(gender: IMe["gender"]) {
@@ -123,4 +125,24 @@ export function setMyLocation(
       locationError: locationError || undefined,
     };
   });
+}
+
+export function setCaptured(
+  waypointId: WaypointId,
+) {
+  setState("captured", (captured) => ({
+    ...captured,
+    [waypointId]: true,
+  }));
+}
+
+export function isCaptured(
+  waypointId: WaypointId,
+) {
+  return !!state.captured[waypointId];
+}
+
+export function getUncapturedWaypoints() {
+  return state.waypoints
+    .filter((waypoint) => !isCaptured(waypoint.id));
 }
