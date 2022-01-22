@@ -3,12 +3,11 @@
 
 import createResizeObserver from "@solid-primitives/resize-observer";
 import {
-  Accessor, createMemo, createSignal, For,
+  Accessor, createMemo, createSignal, For, Show,
 } from "solid-js";
 import { getDistanceFromLine } from "geolib";
 
 import {
-  getUncapturedWaypoints,
   isCaptured, setCaptured, setMyInfo, state,
 } from "../../store/store";
 import { Point } from "../../math/Point";
@@ -40,7 +39,7 @@ function createCatcheDetector() {
     const prev = previousValues()[0];
     const current = location();
     if (!prev || !current) return;
-    const captureDistanceInMeter = 10;
+    const captureDistanceInMeter = 50;
 
     const captured = state.waypoints
       .filter((waypoint) => !isCaptured(waypoint.id))
@@ -86,6 +85,8 @@ export const TopView = () => {
 
   setMyInfo("male");
 
+  const magnetSpringSettings = { stiffness: 10, mass: 10, damping: 10 };
+
   return (
     <div
       class={styles.TopView}
@@ -96,13 +97,25 @@ export const TopView = () => {
           class={styles.TopView_svg}
         >
           <For each={state.waypoints}>{(waypoint) => {
-            const point = createMemo(() => Point
-              .create(waypoint.longitude, waypoint.latitude)
-              .transform(locationsToScreenTransform()));
-            // When captured, fade out
-            const targetOpacity = createMemo(() => (isCaptured(waypoint.id) ? 0 : 1));
-            const [opacity] = createSpringValue(targetOpacity, springSettings);
-            return opacity() && <CoinWaypoint x={point().left} y={point().top} opacity={opacity()}/>;
+            const point = createMemo(() => {
+              // When captured, fly to me (like a magnet)
+              const lon = !isCaptured(waypoint.id) ? waypoint.longitude : state.me?.location?.longitude ?? waypoint.longitude;
+              const lat = !isCaptured(waypoint.id) ? waypoint.latitude : state.me?.location?.latitude ?? waypoint.latitude;
+              return Point
+                .create(lon, lat)
+                .transform(locationsToScreenTransform());
+            });
+
+            // When captured, fade out and fly to me
+            const [opacity] = createSpringValue(createMemo(() => (isCaptured(waypoint.id) ? 0 : 1), magnetSpringSettings));
+            const [x] = createSpringValue(createMemo(() => point().left, magnetSpringSettings));
+            const [y] = createSpringValue(createMemo(() => point().top, magnetSpringSettings));
+
+            return (
+              <Show when={opacity() > 0}>
+                <CoinWaypoint x={x()} y={y()} opacity={opacity()}/>;
+              </Show>
+            );
           }}</For>
 
           <MyWayPoint gender={state.me?.gender ?? "male"} x={mySmoothX()} y={mySmoothY()} />
