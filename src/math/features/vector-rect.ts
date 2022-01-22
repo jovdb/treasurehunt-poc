@@ -4,16 +4,20 @@ import { Vector, IVector } from "../Vector";
 import { Rect } from "../Rect";
 
 declare module "../Vector" {
+  // eslint-disable-next-line no-shadow
   interface Vector {
     /** Fit a vector or rect in this vector */
     fit(this: Vector, targetVector: IVector): Rect;
+    toRect(this: Vector): Rect;
   }
 }
 
 declare module "../Rect" {
+  // eslint-disable-next-line no-shadow
   interface Rect {
     /** Fit a vector or rect in this rect */
     fit(this: Rect, targetVector: IVector): Rect;
+    toVector(this: Rect): Vector;
   }
 }
 
@@ -21,6 +25,7 @@ declare module "../Rect" {
 function fitAspectRatio(
   sourceWidth: number,
   sourceHeight: number,
+  // eslint-disable-next-line no-shadow
   fitAspectRatio: number,
   sourceLeft = 0,
   sourceTop = 0,
@@ -42,6 +47,14 @@ Vector.prototype.fit = function fit(this, targetSize) {
   return fitAspectRatio(this.width, this.height, Vector.getAspectRatio(targetSize));
 };
 
+Vector.prototype.toRect = function toRect(this) {
+  return Rect.create(0, 0, this.width, this.height);
+};
+
 Rect.prototype.fit = function fit(this, targetSize) {
   return fitAspectRatio(this.width, this.height, Vector.getAspectRatio(targetSize), this.left, this.top);
+};
+
+Rect.prototype.toVector = function toRect(this) {
+  return Vector.create(this.width, this.height);
 };

@@ -115,9 +115,15 @@ export class Rect {
     return new Rect(this.left - left, this.top - top, Math.max(0, this.width + left + right), Math.max(0, this.height + top + bottom));
   }
 
+  /**
+   * Log Rect information to console
+   * @param You can pass a debug string or a function that does custom formating with the rect
+   */
   public debug(arg?: string | ((rect: this) => void)): this {
     if (typeof arg === "function") {
-      arg(this);
+      const result = arg(this);
+      // eslint-disable-next-line no-console
+      if (result !== undefined) console.log(result);
     } else {
       // eslint-disable-next-line no-console
       console.log(arg, this.toString());
