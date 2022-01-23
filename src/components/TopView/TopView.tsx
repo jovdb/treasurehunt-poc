@@ -24,32 +24,10 @@ import { CoinWaypoint } from "../CoinWaypoint/CoinWaypoint";
 import styles from "./TopView.module.css";
 import { GeoLocationError } from "../GeoLocationError";
 import { createLocationWatcher } from "../../hooks/createLocationWatcher";
+import { createCatcheDetector } from "../../hooks/createCatchDetector";
 
 const springSettings: ISpringOptions = {
 };
-
-function createLastValues<T>(accessor: Accessor<T>, length = 10) {
-  return createMemo<T[]>((prev) => ([...prev, accessor()].slice(-length)), []);
-}
-
-function createCatcheDetector() {
-  const location = createMemo(() => state.me?.location);
-  const previousValues = createLastValues(location, 2);
-  createMemo(() => {
-    const prev = previousValues()[0];
-    const current = location();
-    if (!prev || !current) return;
-    const captureDistanceInMeter = 50;
-
-    const captured = state.waypoints
-      .filter((waypoint) => !isCaptured(waypoint.id))
-      .filter((waypoint) => getDistanceFromLine(waypoint, prev, current) <= captureDistanceInMeter);
-
-    captured.forEach((waypoint) => {
-      setCaptured(waypoint.id);
-    });
-  });
-}
 
 export const TopView = () => {
   // Size of svg
