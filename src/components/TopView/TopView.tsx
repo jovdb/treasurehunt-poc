@@ -8,7 +8,7 @@ import {
 import { getDistance } from "geolib";
 
 import {
-  isCaptured, setMyInfo, state,
+  isCaptured, setMagnetDistance, setMyInfo, state,
 } from "../../store/store";
 import { Point } from "../../math/Point";
 import { Rect } from "../../math/Rect";
@@ -107,6 +107,7 @@ export const TopView = () => {
   const [mySmoothY] = createSpringValue(myY, springSettings);
 
   setMyInfo("male");
+  setMagnetDistance(10);
 
   const magnetSpringSettings = { stiffness: 10, mass: 10, damping: 10 };
 

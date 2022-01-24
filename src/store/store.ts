@@ -1,3 +1,4 @@
+import { batch } from "solid-js";
 import { createStore } from "solid-js/store";
 import { ILocation, Waypoints } from "../types/WayPoint";
 import { WaypointId } from "../types/WayPointId";
@@ -6,6 +7,7 @@ interface IMe {
   gender: "male" | "female" | undefined;
   location: ILocation | undefined;
   locationError: GeolocationPositionError | undefined;
+  magnetDistanceInMeter: number | undefined;
 }
 
 interface IStore {
@@ -145,4 +147,11 @@ export function isCaptured(
 export function getUncapturedWaypoints() {
   return state.waypoints
     .filter((waypoint) => !isCaptured(waypoint.id));
+}
+
+export function setMagnetDistance(distanceInMeter: number) {
+  batch(() => {
+    setState("me", (prev) => prev || {});
+    setState("me", "magnetDistanceInMeter", distanceInMeter);
+  });
 }
