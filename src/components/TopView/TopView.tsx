@@ -3,12 +3,12 @@
 
 import createResizeObserver from "@solid-primitives/resize-observer";
 import {
-  Accessor, createMemo, createSignal, For, Show,
+  createMemo, createSignal, For, Show,
 } from "solid-js";
-import { getDistanceFromLine } from "geolib";
+import { getDistance } from "geolib";
 
 import {
-  isCaptured, setCaptured, setMyInfo, state,
+  isCaptured, setMyInfo, state,
 } from "../../store/store";
 import { Point } from "../../math/Point";
 import { Rect } from "../../math/Rect";
@@ -25,6 +25,9 @@ import styles from "./TopView.module.css";
 import { GeoLocationError } from "../GeoLocationError";
 import { createLocationWatcher } from "../../hooks/createLocationWatcher";
 import { createCatcheDetector } from "../../hooks/createCatchDetector";
+import { Grid } from "../Grid/Grid";
+import { Vector } from "../../math/Vector";
+import { Transform } from "../../math/Transform";
 
 const springSettings: ISpringOptions = {
 };
@@ -36,11 +39,53 @@ export const TopView = () => {
     onResize: (size) => setSvgRect(Rect.create(0, 0, size.width, size.height)),
   });
 
-  const viewRect = createMemo(() => svgRect().grow(-20));
+  // Temp: randomly scale field
+  const [m, setM] = createSignal(-20);
+  createMemo(() => {
+    setInterval(() => setM(Math.random() * -350), 500);
+  });
+  const viewRect = createMemo(() => svgRect().grow(m()));
 
   const locationBounds = createMemo(() => Rect
     .fromPoints(state.waypoints.map((loc) => Point.create(loc.longitude, loc.latitude))));
-  const locationsToScreenTransform = createMemo(() => viewRect().fitRectTransform(locationBounds()));
+
+  const location2MetersScale = createMemo(() => {
+    const distance = 0.5;
+    const center = locationBounds().getCenter();
+    const lngToMeter = getDistance({ longitude: center.left - distance, latitude: center.top }, { longitude: center.left + distance, latitude: center.top });
+    const latToMeter = getDistance({ longitude: center.left, latitude: center.top - distance }, { longitude: center.left, latitude: center.top + distance });
+
+    return Vector.create(lngToMeter, latToMeter);
+  });
+
+  const locationsToScreenTransform = createMemo(() => {
+    const locationTransform = Transform
+      .scale(1, location2MetersScale().width / location2MetersScale().height) // Coordinates are on a sphere, make square
+      .scale(1, -1); // Reverse direction of latitude because northem hemisphere
+
+    const targetRect = locationBounds()
+      .transform(locationTransform.inverse()) // Scale waypoints
+      .normalize();
+
+    return locationTransform
+      .inverse()
+      .multiply(
+        viewRect().fitRectTransform(targetRect),
+      );
+  });
+
+  // Calcultate Grid
+  const gridSizeInMeters = 10;
+  const gridRect = createMemo(() => Rect
+    .create(state.waypoints[0].longitude, state.waypoints[0].latitude, gridSizeInMeters / location2MetersScale().width, gridSizeInMeters / location2MetersScale().height)
+    .transform(locationsToScreenTransform())
+    .normalize());
+
+  // Animate Grid
+  const [gridX] = createSpringValue(createMemo(() => gridRect().left), springSettings);
+  const [gridY] = createSpringValue(createMemo(() => gridRect().top), springSettings);
+  const [gridWidth] = createSpringValue(createMemo(() => gridRect().width), springSettings);
+  const [gridHeight] = createSpringValue(createMemo(() => gridRect().height), springSettings);
 
   // Set Location
   createLocationWatcher(locationsToScreenTransform);
@@ -55,7 +100,7 @@ export const TopView = () => {
       .transform(locationsToScreenTransform());
   });
 
-  // Animate to new values
+  // Animate my location
   const myX = createMemo(() => myLocationOnScreen().left);
   const myY = createMemo(() => myLocationOnScreen().top);
   const [mySmoothX] = createSpringValue(myX, springSettings);
@@ -74,6 +119,7 @@ export const TopView = () => {
         <svg
           class={styles.TopView_svg}
         >
+          <Grid x={gridX()} y={gridY()} width={gridWidth()} height={gridHeight()} />
           <For each={state.waypoints}>{(waypoint) => {
             const point = createMemo(() => {
               // When captured, fly to me (like a magnet)

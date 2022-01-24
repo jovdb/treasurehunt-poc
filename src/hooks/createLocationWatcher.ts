@@ -30,7 +30,7 @@ export function createLocationWatcher(
   // Get screen location from GPS location
   createMemo(() => {
     setMyLon(location()?.longitude || 0);
-    setMyLat((location()?.latitude || 0) * -1);
+    setMyLat((location()?.latitude || 0));
   });
 
   // When dragging, use it as target position
