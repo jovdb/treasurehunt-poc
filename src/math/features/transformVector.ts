@@ -1,9 +1,11 @@
+/* eslint-disable no-shadow */
 // https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
 
 import { Vector, IVector } from "../Vector";
 import { ITransform, Transform } from "../Transform";
 
 declare module "../Vector" {
+  // eslint-disable-next-line no-shadow
   interface Vector {
     transform(this: Vector, transform: ITransform): Vector;
   }
