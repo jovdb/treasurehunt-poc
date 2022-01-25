@@ -15,6 +15,7 @@ import { Rect } from "../../math/Rect";
 
 import "../../math/features/fitInRect";
 import "../../math/features/transformPoint";
+import "../../math/features/transformVector";
 
 import { SignalLogger } from "../SignalLogger/SignalLogger";
 import { createSpringValue, ISpringOptions } from "../../hooks/createSpring";
@@ -28,6 +29,7 @@ import { createCatcheDetector } from "../../hooks/createCatchDetector";
 import { Grid } from "../Grid/Grid";
 import { Vector } from "../../math/Vector";
 import { Transform } from "../../math/Transform";
+import { MagnetCircle } from "../MagnetCircle/MagnetCircle";
 
 const springSettings: ISpringOptions = {
 };
@@ -41,9 +43,11 @@ export const TopView = () => {
 
   // Temp: randomly scale field
   const [m, setM] = createSignal(-20);
+  /*
   createMemo(() => {
     setInterval(() => setM(Math.random() * -350), 500);
   });
+  */
   const viewRect = createMemo(() => svgRect().grow(m()));
 
   const locationBounds = createMemo(() => Rect
@@ -106,8 +110,27 @@ export const TopView = () => {
   const [mySmoothX] = createSpringValue(myX, springSettings);
   const [mySmoothY] = createSpringValue(myY, springSettings);
 
+  // Magnet
+  const magnetScreenSize = createMemo(() => {
+    const radiusInMeter = state.me?.magnetDistanceInMeter ?? 10;
+    const meterToScreen = Transform
+      .identity
+      .scaleByVector(location2MetersScale()) // Location to meter
+      .inverse() // Meter to location
+      .multiply(locationsToScreenTransform()); // Meter to screen
+    console.log(meterToScreen);
+    return Vector
+      .create(radiusInMeter, radiusInMeter)
+      .transform(meterToScreen);
+  });
+  const magnetWidth = createMemo(() => Math.abs(magnetScreenSize().width));
+  const magnetHeight = createMemo(() => Math.abs(magnetScreenSize().height));
+
+  const [smoothMagnetWidth] = createSpringValue(magnetWidth, springSettings);
+  const [smoothMagnetHeight] = createSpringValue(magnetHeight, springSettings);
+
   setMyInfo("male");
-  setMagnetDistance(10);
+  setMagnetDistance(20);
 
   const magnetSpringSettings = { stiffness: 10, mass: 10, damping: 10 };
 
@@ -143,6 +166,7 @@ export const TopView = () => {
             );
           }}</For>
 
+          <MagnetCircle x={mySmoothX()} y={mySmoothY()} radiusX={smoothMagnetWidth()} radiusY={smoothMagnetHeight()} />
           <MyWayPoint gender={state.me?.gender ?? "male"} x={mySmoothX()} y={mySmoothY()} />
         </svg>
       </GeoLocationError>
