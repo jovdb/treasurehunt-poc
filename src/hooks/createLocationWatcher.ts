@@ -26,6 +26,22 @@ export function createLocationWatcher() {
     return [state.waypoints[index], index] as const;
   }
 
+  // Auto walk
+  let walkingTimer = 0;
+  const speed = 0.00005;
+  const maxAngle = Math.PI / 2;
+  let angle = -1;
+
+  function moveRandom() {
+    angle += Math.random() * maxAngle - maxAngle / 2;
+    const dx = Math.cos(angle) * speed;
+    const dy = Math.sin(angle) * speed;
+
+    setMyLon((prev) => prev + dx);
+    setMyLat((prev) => prev + dy);
+    walkingTimer = setTimeout(moveRandom, 300 + Math.random() * 200) as unknown as number;
+  }
+
   // Change location with keypresses (dragging won't help if we move the map)
   function onKeyDown(e: KeyboardEvent) {
     switch (e.key) {
@@ -40,6 +56,18 @@ export function createLocationWatcher() {
         const { longitude, latitude } = state.waypoints[state.waypoints.length - 1];
         setMyLon(longitude);
         setMyLat(latitude);
+        break;
+      }
+
+      case " ": {
+        if (walkingTimer) {
+          console.log("Stop walking.");
+          clearInterval(walkingTimer);
+          walkingTimer = 0;
+        } else {
+          console.log("Start walking, press Space to stop.");
+          moveRandom();
+        }
         break;
       }
 
@@ -78,6 +106,7 @@ export function createLocationWatcher() {
         break;
 
       default:
+        console.log("unmapped key:", e.key);
         break;
     }
   }
