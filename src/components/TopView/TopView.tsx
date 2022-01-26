@@ -44,7 +44,7 @@ export const TopView = () => {
   // Temp: randomly scale field
   const [m, setM] = createSignal(-20);
   createMemo(() => {
-    setInterval(() => setM(Math.random() * -350), 500);
+    setInterval(() => setM(-20 - Math.random() * 100), 500);
   });
 
   const viewRect = createMemo(() => svgRect().grow(m()));
@@ -88,7 +88,7 @@ export const TopView = () => {
   const [smoothGrid] = createSpring(gridRect, springSettings);
 
   // Set Location
-  createLocationWatcher(locationsToScreenTransform);
+  createLocationWatcher();
 
   createCatcheDetector();
 
