@@ -8,7 +8,7 @@ import {
 import { getDistance } from "geolib";
 
 import {
-  isCaptured, setMagnetDistance, setMyInfo, state,
+  isCaptured, setMagnetDistance, setMyInfo, setViewDistance, state,
 } from "../../store/store";
 import { Point } from "../../math/Point";
 import { Rect } from "../../math/Rect";
@@ -46,7 +46,6 @@ export const TopView = () => {
   createMemo(() => {
     setInterval(() => setM(-20 - Math.random() * 100), 500);
   });
-
   const viewRect = createMemo(() => svgRect().grow(m()));
 
   const locationBounds = createMemo(() => Rect
@@ -61,12 +60,25 @@ export const TopView = () => {
     return Vector.create(lngToMeter, latToMeter);
   });
 
+  const viewBox = createMemo(() => {
+    const viewDistanceInMeter = state.me?.viewDistanceInMeter ?? 50;
+    const viewLongitudeDistance = viewDistanceInMeter / location2MetersScale().width;
+    const viewLatitudeDistance = viewDistanceInMeter / location2MetersScale().height;
+    return Rect
+      .create(
+        (state.me?.location?.longitude ?? 0) - viewLongitudeDistance,
+        (state.me?.location?.latitude ?? 0) - viewLatitudeDistance,
+        viewLongitudeDistance * 2,
+        viewLatitudeDistance * 2,
+      );
+  });
+
   const locationsToScreenTransform = createMemo(() => {
     const locationTransform = Transform
       .scale(1, location2MetersScale().width / location2MetersScale().height) // Coordinates are on a sphere, make square
       .scale(1, -1); // Reverse direction of latitude because northem hemisphere
 
-    const targetRect = locationBounds()
+    const targetRect = viewBox()
       .transform(locationTransform.inverse()) // Scale waypoints
       .normalize();
 
@@ -121,6 +133,7 @@ export const TopView = () => {
 
   setMyInfo("male");
   setMagnetDistance(10);
+  setViewDistance(50);
 
   return (
     <div

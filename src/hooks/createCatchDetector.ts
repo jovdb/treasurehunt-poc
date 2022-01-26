@@ -12,6 +12,7 @@ function createLastValues<T>(accessor: Accessor<T>, length = 10) {
 /** Create 2 audio instances, so we can play before the previous is finished */
 function createAudio(mp3Url: string) {
   const audio = [new Audio(mp3Url), new Audio(mp3Url)];
+  audio.forEach((a) => a.prepend());
   let count = 0;
   return {
     play() {

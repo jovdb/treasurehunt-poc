@@ -8,6 +8,7 @@ interface IMe {
   location: ILocation | undefined;
   locationError: GeolocationPositionError | undefined;
   magnetDistanceInMeter: number | undefined;
+  viewDistanceInMeter: number | undefined;
 }
 
 interface IStore {
@@ -153,5 +154,12 @@ export function setMagnetDistance(distanceInMeter: number) {
   batch(() => {
     setState("me", (prev) => prev || {});
     setState("me", "magnetDistanceInMeter", distanceInMeter);
+  });
+}
+
+export function setViewDistance(distanceInMeter: number) {
+  batch(() => {
+    setState("me", (prev) => prev || {});
+    setState("me", "viewDistanceInMeter", distanceInMeter);
   });
 }

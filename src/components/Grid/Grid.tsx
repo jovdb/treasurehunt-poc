@@ -18,7 +18,7 @@ export function Grid(props: {
           height={props.height}
           patternUnits="userSpaceOnUse"
         >
-          <path d={`M ${props.width} 0 L 0 0 0 ${props.height}`} fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="0.5" />
+          <path d={`M ${props.width} 0 L 0 0 0 ${props.height}`} fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="0.5" />
         </pattern>
       </defs>
       <rect width="100%" height="100%" fill="url(#grid)" />
