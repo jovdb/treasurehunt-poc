@@ -18,7 +18,7 @@ import "../../math/features/transformPoint";
 import "../../math/features/transformVector";
 
 import { SignalLogger } from "../SignalLogger/SignalLogger";
-import { createSpringValue, ISpringOptions } from "../../hooks/createSpring";
+import { createSpring, ISpringBehavior } from "../../hooks/createSpring";
 import { MyWayPoint } from "../MyLocation/MyLocation";
 import { CoinWaypoint } from "../CoinWaypoint/CoinWaypoint";
 
@@ -31,8 +31,8 @@ import { Vector } from "../../math/Vector";
 import { Transform } from "../../math/Transform";
 import { MagnetCircle } from "../MagnetCircle/MagnetCircle";
 
-const springSettings: ISpringOptions = {
-};
+const springSettings: ISpringBehavior = {};
+const magnetSpringSettings: ISpringBehavior = {};
 
 export const TopView = () => {
   // Size of svg
@@ -43,11 +43,10 @@ export const TopView = () => {
 
   // Temp: randomly scale field
   const [m, setM] = createSignal(-20);
-  /*
   createMemo(() => {
     setInterval(() => setM(Math.random() * -350), 500);
   });
-  */
+
   const viewRect = createMemo(() => svgRect().grow(m()));
 
   const locationBounds = createMemo(() => Rect
@@ -86,10 +85,7 @@ export const TopView = () => {
     .normalize());
 
   // Animate Grid
-  const [gridX] = createSpringValue(createMemo(() => gridRect().left), springSettings);
-  const [gridY] = createSpringValue(createMemo(() => gridRect().top), springSettings);
-  const [gridWidth] = createSpringValue(createMemo(() => gridRect().width), springSettings);
-  const [gridHeight] = createSpringValue(createMemo(() => gridRect().height), springSettings);
+  const [smoothGrid] = createSpring(gridRect, springSettings);
 
   // Set Location
   createLocationWatcher(locationsToScreenTransform);
@@ -105,10 +101,7 @@ export const TopView = () => {
   });
 
   // Animate my location
-  const myX = createMemo(() => myLocationOnScreen().left);
-  const myY = createMemo(() => myLocationOnScreen().top);
-  const [mySmoothX] = createSpringValue(myX, springSettings);
-  const [mySmoothY] = createSpringValue(myY, springSettings);
+  const [mySmoothPosition] = createSpring(myLocationOnScreen, springSettings);
 
   // Magnet
   const magnetScreenSize = createMemo(() => {
@@ -118,21 +111,16 @@ export const TopView = () => {
       .scaleByVector(location2MetersScale()) // Location to meter
       .inverse() // Meter to location
       .multiply(locationsToScreenTransform()); // Meter to screen
-    console.log(meterToScreen);
-    return Vector
+
+    const vector = Vector
       .create(radiusInMeter, radiusInMeter)
       .transform(meterToScreen);
+    return Vector.create(Math.abs(vector.width), Math.abs(vector.height));
   });
-  const magnetWidth = createMemo(() => Math.abs(magnetScreenSize().width));
-  const magnetHeight = createMemo(() => Math.abs(magnetScreenSize().height));
-
-  const [smoothMagnetWidth] = createSpringValue(magnetWidth, springSettings);
-  const [smoothMagnetHeight] = createSpringValue(magnetHeight, springSettings);
+  const [smoothMagnetSize] = createSpring(magnetScreenSize, springSettings);
 
   setMyInfo("male");
-  setMagnetDistance(20);
-
-  const magnetSpringSettings = { stiffness: 10, mass: 10, damping: 10 };
+  setMagnetDistance(10);
 
   return (
     <div
@@ -143,31 +131,31 @@ export const TopView = () => {
         <svg
           class={styles.TopView_svg}
         >
-          <Grid x={gridX()} y={gridY()} width={gridWidth()} height={gridHeight()} />
+          <Grid x={smoothGrid().left} y={smoothGrid().top} width={smoothGrid().width} height={smoothGrid().height} />
           <For each={state.waypoints}>{(waypoint) => {
+            // When captured, fade out and fly to me
+            const [opacity] = createSpring(createMemo(() => (isCaptured(waypoint.id) ? 0 : 1), magnetSpringSettings));
+
             const point = createMemo(() => {
-              // When captured, fly to me (like a magnet)
-              const lon = !isCaptured(waypoint.id) ? waypoint.longitude : state.me?.location?.longitude ?? waypoint.longitude;
-              const lat = !isCaptured(waypoint.id) ? waypoint.latitude : state.me?.location?.latitude ?? waypoint.latitude;
+              // When captured, fly to me (like a magnet) (if opacity === 0, also use fixed value)
+              const lon = (!isCaptured(waypoint.id) || opacity() === 0) ? waypoint.longitude : state.me?.location?.longitude ?? waypoint.longitude;
+              const lat = (!isCaptured(waypoint.id) || opacity() === 0) ? waypoint.latitude : state.me?.location?.latitude ?? waypoint.latitude;
               return Point
                 .create(lon, lat)
                 .transform(locationsToScreenTransform());
             });
 
-            // When captured, fade out and fly to me
-            const [opacity] = createSpringValue(createMemo(() => (isCaptured(waypoint.id) ? 0 : 1), magnetSpringSettings));
-            const [x] = createSpringValue(createMemo(() => point().left, magnetSpringSettings));
-            const [y] = createSpringValue(createMemo(() => point().top, magnetSpringSettings));
+            const [position] = createSpring(point, magnetSpringSettings);
 
             return (
               <Show when={opacity() > 0}>
-                <CoinWaypoint x={x()} y={y()} opacity={opacity()}/>;
+                <CoinWaypoint x={position().left} y={position().top} opacity={opacity()}/>;
               </Show>
             );
           }}</For>
 
-          <MagnetCircle x={mySmoothX()} y={mySmoothY()} radiusX={smoothMagnetWidth()} radiusY={smoothMagnetHeight()} />
-          <MyWayPoint gender={state.me?.gender ?? "male"} x={mySmoothX()} y={mySmoothY()} />
+          <MagnetCircle x={mySmoothPosition().left} y={mySmoothPosition().top} radiusX={smoothMagnetSize().width} radiusY={smoothMagnetSize().height} />
+          <MyWayPoint gender={state.me?.gender ?? "male"} x={mySmoothPosition().left} y={mySmoothPosition().top} />
         </svg>
       </GeoLocationError>
 
@@ -176,8 +164,6 @@ export const TopView = () => {
           svgRect,
           locationBounds,
           locationsToScreenTransform,
-          myX,
-          mySmoothX,
         }} />
       </div>
     </div>

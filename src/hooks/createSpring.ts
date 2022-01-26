@@ -1,12 +1,24 @@
+import oriCreateSpring from "lemonade-spring";
+
 import {
   createSignal, createEffect, on, Accessor, onCleanup, batch,
 } from "solid-js";
 
-import createSpring from "lemonade-spring";
+/** Get all key names of members that have not not specified type */
+type OmitKeysOfType<T extends object, TOmit> = { [P in keyof T]: T[P] extends TOmit ? never : P }[keyof T];
 
-export interface ISpringOptions {
-  /** Can either be a number, an array (mutated) or an simple object with no nesting (mutated) */
-  startValue?: number;
+/** Remove the members of an object with the specified name */
+export type OmitType<T extends object, TOmit> = Pick<T, OmitKeysOfType<T, TOmit>>;
+
+export type PickType<T extends object, TProp> = OmitType<{
+  [P in keyof T]: T[P] extends TProp
+    ? T[P]
+    : never
+}, never>;
+
+export type SpringResult<T extends object | number> = Accessor<T extends object ? PickType<T, number> : number>
+
+export interface ISpringBehavior {
   /** A number defining the mass of the spring. Default to 1 */
   mass?: number;
   /** A number defining the stiffness of the spring. Default to 0.1 */
@@ -16,7 +28,13 @@ export interface ISpringOptions {
   /** A number defining the interval size in which the animation will considered completed. Default to 0.01. */
   precision?: number;
   /** A function that will be called after the update() call. Return the current value. */
-  onUpdate?: (newValue: number) => void
+}
+
+export interface ISpringOptions<T extends object | number> {
+  /** Can either be a number, or an simple object with no nesting (mutated) */
+  startValue?: T;
+  /** A function that will be called after the update() call. Return the current value. */
+  onUpdate?: (newValue: SpringResult<T>) => void
   /** A function that will be called once the destValue is in range [destValue-precision, destValue+precision] */
   onComplete?: () => void
 }
@@ -37,7 +55,7 @@ interface ISpring<T> {
 /**
  * Creates a simple spring method.
  *
- * @param function Accessor to be modified
+ * @param function Accessor to be modified (number or object with number values)
  * @param object Object with the spring properties
  * @returns Returns the spring value with spring information
  *
@@ -46,24 +64,29 @@ interface ISpring<T> {
  * const [springSignal] = createSpring(xSignal, { mass: 10 });
  * ```
  */
-export function createSpringValue(
-  target: Accessor<number>,
-  options?: ISpringOptions,
+export function createSpring<T extends object | number>(
+  target: Accessor<T>,
+  options?: ISpringOptions<T> & ISpringBehavior,
 ) {
   const [current, setCurrent] = createSignal(target());
   const [isBusy, setIsBusy] = createSignal(false);
 
   // Create a spring value
-  const spring = createSpring(target(), {
+  const spring = oriCreateSpring(target(), {
     ...options,
     onUpdate: (newValue: number) => {
       batch(() => {
-        setCurrent(newValue as any);
+        if (typeof newValue === "object") {
+          setCurrent({ ...newValue as any }); // the library mutates the value, solids want a different immutable value
+        } else {
+          setCurrent(newValue as any); // the library mutates the value, solids want a different immutable value
+        }
         setIsBusy(!spring.completed);
-        if (options?.onUpdate) options.onUpdate(newValue);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        if (options?.onUpdate) options.onUpdate(newValue as any);
       });
     },
-  }) as ISpring<number>;
+  }) as ISpring<T>;
 
   // If target value changes, animate with spring
   createEffect(on(target, () => {
@@ -88,7 +111,5 @@ export function createSpringValue(
     });
   }, { defer: true })); // Don't animate from initial value
 
-  return [current, isBusy, spring] as const;
+  return [current as unknown as SpringResult<T>, isBusy, spring] as const;
 }
-
-// TODO: support object // array
