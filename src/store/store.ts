@@ -160,6 +160,6 @@ export function setMagnetDistance(distanceInMeter: number) {
 export function setViewDistance(distanceInMeter: number) {
   batch(() => {
     setState("me", (prev) => prev || {});
-    setState("me", "viewDistanceInMeter", distanceInMeter);
+    setState("me", "viewDistanceInMeter", Math.max(20, distanceInMeter));
   });
 }

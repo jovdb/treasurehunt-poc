@@ -3,7 +3,7 @@
 
 import createResizeObserver from "@solid-primitives/resize-observer";
 import {
-  createMemo, createSignal, For, Show,
+  createMemo, createSignal, For, onCleanup, onMount, Show,
 } from "solid-js";
 import { getDistance } from "geolib";
 
@@ -25,14 +25,42 @@ import { CoinWaypoint } from "../CoinWaypoint/CoinWaypoint";
 import styles from "./TopView.module.css";
 import { GeoLocationError } from "../GeoLocationError";
 import { createLocationWatcher } from "../../hooks/createLocationWatcher";
-import { createCatcheDetector } from "../../hooks/createCatchDetector";
+import { createCatcheDetector, createLastValues } from "../../hooks/createCatchDetector";
 import { Grid } from "../Grid/Grid";
 import { Vector } from "../../math/Vector";
 import { Transform } from "../../math/Transform";
 import { MagnetCircle } from "../MagnetCircle/MagnetCircle";
+import { ViewMask } from "../ViewMask/ViewMask";
+import { WalkHistory } from "../WalkHistory/WalkHistory";
 
 const springSettings: ISpringBehavior = {};
 const magnetSpringSettings: ISpringBehavior = {};
+
+function createViewDistanceChanger() {
+  // Change location with keypresses (dragging won't help if we move the map)
+  function onKeyDown(e: KeyboardEvent) {
+    // eslint-disable-next-line default-case
+    switch (e.key) {
+      case "+": {
+        setViewDistance((state.me?.viewDistanceInMeter ?? 50) + 5);
+        break;
+      }
+
+      case "-": {
+        setViewDistance((state.me?.viewDistanceInMeter ?? 50) - 5);
+        break;
+      }
+    }
+  }
+
+  onMount(() => {
+    document.addEventListener("keydown", onKeyDown);
+  });
+
+  onCleanup(() => {
+    document.addEventListener("keydown", onKeyDown);
+  });
+}
 
 export const TopView = () => {
   // Size of svg
@@ -42,11 +70,7 @@ export const TopView = () => {
   });
 
   // Temp: randomly scale field
-  const [m, setM] = createSignal(-20);
-  createMemo(() => {
-    setInterval(() => setM(-20 - Math.random() * 100), 500);
-  });
-  const viewRect = createMemo(() => svgRect().grow(m()));
+  const viewRect = createMemo(() => svgRect().grow(-20));
 
   const locationBounds = createMemo(() => Rect
     .fromPoints(state.waypoints.map((loc) => Point.create(loc.longitude, loc.latitude))));
@@ -60,6 +84,7 @@ export const TopView = () => {
     return Vector.create(lngToMeter, latToMeter);
   });
 
+  /** Visible rectangle in geoCoordinates */
   const viewBox = createMemo(() => {
     const viewDistanceInMeter = state.me?.viewDistanceInMeter ?? 50;
     const viewLongitudeDistance = viewDistanceInMeter / location2MetersScale().width;
@@ -103,6 +128,7 @@ export const TopView = () => {
   createLocationWatcher();
 
   createCatcheDetector();
+  createViewDistanceChanger();
 
   // Convert location to screen coordinates
   const myLocationOnScreen = createMemo(() => {
@@ -130,6 +156,56 @@ export const TopView = () => {
     return Vector.create(Math.abs(vector.width), Math.abs(vector.height));
   });
   const [smoothMagnetSize] = createSpring(magnetScreenSize, springSettings);
+
+  // ViewMask
+  const viewMask = createMemo(() => {
+    const { left, top } = viewBox()
+      .getCenter()
+      .transform(locationsToScreenTransform());
+    const size = viewBox()
+      .transform(locationsToScreenTransform());
+    const radiusX = size.width / 2;
+    const radiusY = size.height / 2;
+
+    return {
+      x: left,
+      y: top,
+      radiusX,
+      radiusY,
+    };
+  });
+  const [smoothViewMask] = createSpring(viewMask, springSettings);
+
+  // Trail
+  const lastPositions = createLastValues(createMemo(() => state.me?.location), 20);
+
+  // Create flat number so we can animate them
+  const flatTrailValues = createMemo(() => lastPositions().reduce<number[]>((p, location) => {
+    if (!location) return p;
+    const position = Point
+      .create(location.longitude, location.latitude)
+      .transform(locationsToScreenTransform());
+
+    p.push(Math.round(position.left * 10) / 10); // Use decimals for high density displays
+    p.push(Math.round(position.top * 10) / 10);
+    return p;
+  }, []));
+
+  // Convert flat numbers bac to point
+  const positions = createMemo(() => {
+    let prev = 0;
+    const a = flatTrailValues().reduce<Point[]>((p, value, index) => {
+      if (index % 2 === 0) {
+        prev = value;
+      } else {
+        p.push(Point.create(prev, value));
+      }
+      return p;
+    }, []);
+
+    console.log(a);
+    return a;
+  });
 
   setMyInfo("male");
   setMagnetDistance(10);
@@ -167,8 +243,10 @@ export const TopView = () => {
             );
           }}</For>
 
+          <WalkHistory points={positions()}/>
           <MagnetCircle x={mySmoothPosition().left} y={mySmoothPosition().top} radiusX={smoothMagnetSize().width} radiusY={smoothMagnetSize().height} />
           <MyWayPoint gender={state.me?.gender ?? "male"} x={mySmoothPosition().left} y={mySmoothPosition().top} />
+          <ViewMask x={smoothViewMask().x} y={smoothViewMask().y} radiusX={smoothViewMask().radiusX} radiusY={smoothViewMask().y} />
         </svg>
       </GeoLocationError>
 

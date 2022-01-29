@@ -8,16 +8,14 @@ export function MagnetCircle(props: {
     <>
       <defs>
         <radialGradient id="magnet-circle">
-          <stop offset="0%" stop-color="rgba(0, 0, 255, 0.12)">
-          </stop>
-          <stop offset="60%" stop-color="rgba(0, 0, 255, 0.12)">
+          <stop offset="0" stop-color="rgba(0, 0, 255, 0.12)" />
+          <stop offset="0.6" stop-color="rgba(0, 0, 255, 0.12)">
             <animate attributeName="offset" values="0.6;0.2;0.6" dur="2s" repeatCount="indefinite"></animate>
           </stop>
-          <stop offset="90%" stop-color="rgba(0, 0, 255, 0.04)">
+          <stop offset="0.9" stop-color="rgba(0, 0, 255, 0.04)">
             <animate attributeName="offset" values="0.9;0.5;0.9" dur="2s" repeatCount="indefinite"></animate>
           </stop>
-          <stop offset="100%" stop-color="rgba(0, 0, 255, 0.04)">
-          </stop>
+          <stop offset="1" stop-color="rgba(0, 0, 255, 0.04)" />
         </radialGradient>
       </defs>
       <ellipse

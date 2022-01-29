@@ -1,6 +1,3 @@
-import { createMemo } from "solid-js";
-import { createSpringValue } from "../../hooks/createSpring";
-
 export function Grid(props: {
   x: number;
   y: number;
@@ -18,9 +15,10 @@ export function Grid(props: {
           height={props.height}
           patternUnits="userSpaceOnUse"
         >
-          <path d={`M ${props.width} 0 L 0 0 0 ${props.height}`} fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="0.5" />
+          <path d={`M ${props.width} 0 L 0 0 0 ${props.height}`} fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="0.5" />
         </pattern>
       </defs>
+      <rect width="100%" height="100%" fill="#f8f8f8" />
       <rect width="100%" height="100%" fill="url(#grid)" />
     </>
   );
