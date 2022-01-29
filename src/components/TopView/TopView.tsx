@@ -31,9 +31,11 @@ import { Vector } from "../../math/Vector";
 import { Transform } from "../../math/Transform";
 import { MagnetCircle } from "../MagnetCircle/MagnetCircle";
 import { ViewMask } from "../ViewMask/ViewMask";
-import { WalkHistory } from "../WalkHistory/WalkHistory";
+import { WalkTrail } from "../WalkTrail/WalkTrail";
 
-const springSettings: ISpringBehavior = {};
+const springSettings: ISpringBehavior = {
+  stiffness: 0.1,
+};
 const magnetSpringSettings: ISpringBehavior = {};
 
 function createViewDistanceChanger() {
@@ -113,16 +115,14 @@ export const TopView = () => {
         viewRect().fitRectTransform(targetRect),
       );
   });
+  const [smoothLocationToScreenTransform] = createSpring(locationsToScreenTransform, springSettings);
 
   // Calcultate Grid
   const gridSizeInMeters = 10;
-  const gridRect = createMemo(() => Rect
+  const smoothGrid = createMemo(() => Rect
     .create(state.waypoints[0].longitude, state.waypoints[0].latitude, gridSizeInMeters / location2MetersScale().width, gridSizeInMeters / location2MetersScale().height)
-    .transform(locationsToScreenTransform())
+    .transform(smoothLocationToScreenTransform() as Transform)
     .normalize());
-
-  // Animate Grid
-  const [smoothGrid] = createSpring(gridRect, springSettings);
 
   // Set Location
   createLocationWatcher();
@@ -142,20 +142,19 @@ export const TopView = () => {
   const [mySmoothPosition] = createSpring(myLocationOnScreen, springSettings);
 
   // Magnet
-  const magnetScreenSize = createMemo(() => {
+  const smoothMagnetSize = createMemo(() => {
     const radiusInMeter = state.me?.magnetDistanceInMeter ?? 10;
     const meterToScreen = Transform
       .identity
       .scaleByVector(location2MetersScale()) // Location to meter
       .inverse() // Meter to location
-      .multiply(locationsToScreenTransform()); // Meter to screen
+      .multiply(smoothLocationToScreenTransform()); // Meter to screen
 
     const vector = Vector
       .create(radiusInMeter, radiusInMeter)
       .transform(meterToScreen);
     return Vector.create(Math.abs(vector.width), Math.abs(vector.height));
   });
-  const [smoothMagnetSize] = createSpring(magnetScreenSize, springSettings);
 
   // ViewMask
   const viewMask = createMemo(() => {
@@ -184,7 +183,7 @@ export const TopView = () => {
     if (!location) return p;
     const position = Point
       .create(location.longitude, location.latitude)
-      .transform(locationsToScreenTransform());
+      .transform(smoothLocationToScreenTransform());
 
     p.push(Math.round(position.left * 10) / 10); // Use decimals for high density displays
     p.push(Math.round(position.top * 10) / 10);
@@ -194,7 +193,8 @@ export const TopView = () => {
   // Convert flat numbers bac to point
   const positions = createMemo(() => {
     let prev = 0;
-    const a = flatTrailValues().reduce<Point[]>((p, value, index) => {
+    // eslint-disable-next-line no-debugger
+    return flatTrailValues().reduce<Point[]>((p, value, index) => {
       if (index % 2 === 0) {
         prev = value;
       } else {
@@ -202,9 +202,6 @@ export const TopView = () => {
       }
       return p;
     }, []);
-
-    console.log(a);
-    return a;
   });
 
   setMyInfo("male");
@@ -243,7 +240,7 @@ export const TopView = () => {
             );
           }}</For>
 
-          <WalkHistory points={positions()}/>
+          <WalkTrail points={positions()}/>
           <MagnetCircle x={mySmoothPosition().left} y={mySmoothPosition().top} radiusX={smoothMagnetSize().width} radiusY={smoothMagnetSize().height} />
           <MyWayPoint gender={state.me?.gender ?? "male"} x={mySmoothPosition().left} y={mySmoothPosition().top} />
           <ViewMask x={smoothViewMask().x} y={smoothViewMask().y} radiusX={smoothViewMask().radiusX} radiusY={smoothViewMask().y} />

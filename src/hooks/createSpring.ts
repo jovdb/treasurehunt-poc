@@ -16,7 +16,7 @@ export type PickType<T extends object, TProp> = OmitType<{
     : never
 }, never>;
 
-export type SpringResult<T extends object | number> = Accessor<T extends object ? PickType<T, number> : number>
+export type SpringResult<T extends object | number | number[]> = Accessor<T extends number[] ? number[] : T extends object ? PickType<T, number> : T>
 
 export interface ISpringBehavior {
   /** A number defining the mass of the spring. Default to 1 */
@@ -64,7 +64,7 @@ interface ISpring<T> {
  * const [springSignal] = createSpring(xSignal, { mass: 10 });
  * ```
  */
-export function createSpring<T extends object | number>(
+export function createSpring<T extends object | number[] | number>(
   target: Accessor<T>,
   options?: ISpringOptions<T> & ISpringBehavior,
 ) {
@@ -78,6 +78,9 @@ export function createSpring<T extends object | number>(
       batch(() => {
         if (typeof newValue === "object") {
           setCurrent({ ...newValue as any }); // the library mutates the value, solids want a different immutable value
+        } else if (Array.isArray(newValue)) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          setCurrent([...newValue] as any); // the library mutates the value, solids want a different immutable value
         } else {
           setCurrent(newValue as any); // the library mutates the value, solids want a different immutable value
         }

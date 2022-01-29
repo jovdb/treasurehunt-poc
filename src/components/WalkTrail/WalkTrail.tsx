@@ -1,7 +1,7 @@
 import { createMemo } from "solid-js";
 import { Point } from "../../math/Point";
 
-export function WalkHistory(props: { points: Point[] }) {
+export function WalkTrail(props: { points: Point[] }) {
   const path = createMemo(() => props.points.reduce((p, position, index) => {
     p += index ? "L" : "M";
     p += `${Math.round(position.left)} ${Math.round(position.top)} `;
