@@ -2,6 +2,7 @@ import { findNearest } from "geolib";
 
 import { createGeolocationWatcher } from "@solid-primitives/geolocation";
 import {
+  batch,
   createMemo, createSignal, onCleanup, onMount,
 } from "solid-js";
 
@@ -28,7 +29,7 @@ export function createLocationWatcher() {
 
   // Auto walk
   let walkingTimer = 0;
-  const speed = 0.00005;
+  const speed = 0.00002;
   const maxAngle = Math.PI / 2;
   let angle = -1;
 
@@ -37,9 +38,11 @@ export function createLocationWatcher() {
     const dx = Math.cos(angle) * speed;
     const dy = Math.sin(angle) * speed;
 
-    setMyLon((prev) => prev + dx);
-    setMyLat((prev) => prev + dy);
-    walkingTimer = setTimeout(moveRandom, 300 + Math.random() * 200) as unknown as number;
+    batch(() => {
+      setMyLon((prev) => prev + dx);
+      setMyLat((prev) => prev + dy);
+    });
+    walkingTimer = setTimeout(moveRandom, 150 + Math.random() * 200) as unknown as number;
   }
 
   // Change location with keypresses (dragging won't help if we move the map)
@@ -47,15 +50,19 @@ export function createLocationWatcher() {
     switch (e.key) {
       case "Home": {
         const { longitude, latitude } = state.waypoints[0];
-        setMyLon(longitude);
-        setMyLat(latitude);
+        batch(() => {
+          setMyLon(longitude);
+          setMyLat(latitude);
+        });
         break;
       }
 
       case "End": {
         const { longitude, latitude } = state.waypoints[state.waypoints.length - 1];
-        setMyLon(longitude);
-        setMyLat(latitude);
+        batch(() => {
+          setMyLon(longitude);
+          setMyLat(latitude);
+        });
         break;
       }
 
@@ -75,8 +82,10 @@ export function createLocationWatcher() {
         const [, index] = getClosestWaypoint();
         const nextIndex = Math.max(0, Math.min(state.waypoints.length - 1, index + 1));
         const nextWaypoint = state.waypoints[nextIndex];
-        setMyLon(nextWaypoint.longitude);
-        setMyLat(nextWaypoint.latitude);
+        batch(() => {
+          setMyLon(nextWaypoint.longitude);
+          setMyLat(nextWaypoint.latitude);
+        });
         break;
       }
 
@@ -84,29 +93,30 @@ export function createLocationWatcher() {
         const [, index] = getClosestWaypoint();
         const nextIndex = Math.max(0, Math.min(state.waypoints.length - 1, index - 1));
         const nextWaypoint = state.waypoints[nextIndex];
-        setMyLon(nextWaypoint.longitude);
-        setMyLat(nextWaypoint.latitude);
+        batch(() => {
+          setMyLon(nextWaypoint.longitude);
+          setMyLat(nextWaypoint.latitude);
+        });
         break;
       }
 
       case "ArrowLeft":
-        setMyLon((prev) => prev - 0.00005);
+        setMyLon((prev) => prev - 0.00004);
         break;
 
       case "ArrowRight":
-        setMyLon((prev) => prev + 0.00005);
+        setMyLon((prev) => prev + 0.00004);
         break;
 
       case "ArrowUp":
-        setMyLat((prev) => prev + 0.00003);
+        setMyLat((prev) => prev + 0.00002);
         break;
 
       case "ArrowDown":
-        setMyLat((prev) => prev - 0.00003);
+        setMyLat((prev) => prev - 0.00002);
         break;
 
       default:
-        console.log("unmapped key:", e.key);
         break;
     }
   }
@@ -121,8 +131,10 @@ export function createLocationWatcher() {
 
   // Get screen location from GPS location
   createMemo(() => {
-    setMyLon(location()?.longitude || 0);
-    setMyLat((location()?.latitude || 0));
+    batch(() => {
+      setMyLon(location()?.longitude || 0);
+      setMyLat((location()?.latitude || 0));
+    });
   });
 
   // Update state on location changex
