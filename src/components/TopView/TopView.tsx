@@ -176,7 +176,7 @@ export const TopView = () => {
   const [smoothViewMask] = createSpring(viewMask, springSettings);
 
   // Trail
-  const lastPositions = createLastValues(createMemo(() => state.me?.location), 20);
+  const lastPositions = createLastValues(createMemo(() => state.me?.location), 50);
 
   // Create flat number so we can animate them
   const flatTrailValues = createMemo(() => lastPositions().reduce<number[]>((p, location) => {
