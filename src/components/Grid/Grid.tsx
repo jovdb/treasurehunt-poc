@@ -5,7 +5,7 @@ export function Grid(props: {
   height: number;
 }) {
   return (
-    <>
+    <g class="grid">
       <defs>
         <pattern
           id="grid"
@@ -18,8 +18,7 @@ export function Grid(props: {
           <path d={`M ${props.width} 0 L 0 0 0 ${props.height}`} fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="0.5" />
         </pattern>
       </defs>
-      <rect width="100%" height="100%" fill="#f8f8f8" />
       <rect width="100%" height="100%" fill="url(#grid)" />
-    </>
+    </g>
   );
 }

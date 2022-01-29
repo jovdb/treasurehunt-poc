@@ -44,12 +44,12 @@ function createViewDistanceChanger() {
     // eslint-disable-next-line default-case
     switch (e.key) {
       case "+": {
-        setViewDistance((state.me?.viewDistanceInMeter ?? 50) + 5);
+        setViewDistance((state.me?.viewDistanceInMeter ?? 50) + 10);
         break;
       }
 
       case "-": {
-        setViewDistance((state.me?.viewDistanceInMeter ?? 50) - 5);
+        setViewDistance((state.me?.viewDistanceInMeter ?? 50) - 10);
         break;
       }
     }
@@ -117,7 +117,7 @@ export const TopView = () => {
   });
   const [smoothLocationToScreenTransform] = createSpring(locationsToScreenTransform, springSettings);
 
-  // Calcultate Grid
+  // Calculate Grid
   const gridSizeInMeters = 10;
   const smoothGrid = createMemo(() => Rect
     .create(state.waypoints[0].longitude, state.waypoints[0].latitude, gridSizeInMeters / location2MetersScale().width, gridSizeInMeters / location2MetersScale().height)
@@ -163,6 +163,8 @@ export const TopView = () => {
       .transform(locationsToScreenTransform());
     const size = viewBox()
       .transform(locationsToScreenTransform());
+
+    // TODO: fix, seems to have a bug?
     const radiusX = size.width / 2;
     const radiusY = size.height / 2;
 
@@ -217,31 +219,34 @@ export const TopView = () => {
         <svg
           class={styles.TopView_svg}
         >
-          <Grid x={smoothGrid().left} y={smoothGrid().top} width={smoothGrid().width} height={smoothGrid().height} />
-          <For each={state.waypoints}>{(waypoint) => {
-            // When captured, fade out and fly to me
-            const [opacity] = createSpring(createMemo(() => (isCaptured(waypoint.id) ? 0 : 1), magnetSpringSettings));
-
-            const point = createMemo(() => {
-              // When captured, fly to me (like a magnet) (if opacity === 0, also use fixed value)
-              const lon = (!isCaptured(waypoint.id) || opacity() === 0) ? waypoint.longitude : state.me?.location?.longitude ?? waypoint.longitude;
-              const lat = (!isCaptured(waypoint.id) || opacity() === 0) ? waypoint.latitude : state.me?.location?.latitude ?? waypoint.latitude;
-              return Point
-                .create(lon, lat)
-                .transform(locationsToScreenTransform());
-            });
-
-            const [position] = createSpring(point, magnetSpringSettings);
-
-            return (
-              <Show when={opacity() > 0}>
-                <CoinWaypoint x={position().left} y={position().top} opacity={opacity()}/>;
-              </Show>
-            );
-          }}</For>
-
+          <rect width="100%" height="100%" fill="#f8f8f8" />
+          <MagnetCircle x ={mySmoothPosition().left} y={mySmoothPosition().top} radiusX={smoothMagnetSize().width} radiusY={smoothMagnetSize().height} />
           <WalkTrail points={positions()}/>
-          <MagnetCircle x={mySmoothPosition().left} y={mySmoothPosition().top} radiusX={smoothMagnetSize().width} radiusY={smoothMagnetSize().height} />
+          <Grid x={smoothGrid().left} y={smoothGrid().top} width={smoothGrid().width} height={smoothGrid().height} />
+          <g class="items">
+            <For each={state.waypoints}>{(waypoint) => {
+              // When captured, fade out and fly to me
+              const [opacity] = createSpring(createMemo(() => (isCaptured(waypoint.id) ? 0 : 1), magnetSpringSettings));
+
+              const point = createMemo(() => {
+                // When captured, fly to me (like a magnet) (if opacity === 0, also use fixed value)
+                const lon = (!isCaptured(waypoint.id) || opacity() === 0) ? waypoint.longitude : state.me?.location?.longitude ?? waypoint.longitude;
+                const lat = (!isCaptured(waypoint.id) || opacity() === 0) ? waypoint.latitude : state.me?.location?.latitude ?? waypoint.latitude;
+                return Point
+                  .create(lon, lat)
+                  .transform(locationsToScreenTransform());
+              });
+
+              const [position] = createSpring(point, magnetSpringSettings);
+
+              return (
+                <Show when={opacity() > 0}>
+                  <CoinWaypoint x={position().left} y={position().top} opacity={opacity()}/>;
+                </Show>
+              );
+            }}</For>
+          </g>
+
           <MyWayPoint gender={state.me?.gender ?? "male"} x={mySmoothPosition().left} y={mySmoothPosition().top} />
           <ViewMask x={smoothViewMask().x} y={smoothViewMask().y} radiusX={smoothViewMask().radiusX} radiusY={smoothViewMask().y} />
         </svg>
@@ -249,9 +254,6 @@ export const TopView = () => {
 
       <div style={{ position: "absolute", top: "10px", right: "10px" }}>
         <SignalLogger obj={{
-          svgRect,
-          locationBounds,
-          locationsToScreenTransform,
         }} />
       </div>
     </div>

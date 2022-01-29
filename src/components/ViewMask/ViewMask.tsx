@@ -6,7 +6,7 @@ export function ViewMask(props: {
 }) {
   // https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Clipping_and_masking#masking
   return (
-    <>
+    <g class="view-mask">
       <defs>
         <radialGradient id="view-circle-gradient">
           <stop offset="0.9" stop-color="black" />
@@ -33,6 +33,6 @@ export function ViewMask(props: {
         mask="url('#view-circle-mask')"
         fill="white"
       />
-    </>
+    </g>
   );
 }
