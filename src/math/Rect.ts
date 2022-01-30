@@ -144,6 +144,15 @@ export class Rect {
     return Rect.areSimilar(this, rect, epsilon);
   }
 
+  public containsPoint(point: IPoint) {
+    return (
+      point.left >= this.left
+      && point.left <= this.left + this.width
+      && point.top >= this.top
+      && point.top <= this.top + this.height
+    );
+  }
+
   public toString() {
     return `rect(${this.left}, ${this.top}, ${this.width}, ${this.height})`;
   }

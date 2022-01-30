@@ -225,23 +225,27 @@ export const TopView = () => {
           <Grid x={smoothGrid().left} y={smoothGrid().top} width={smoothGrid().width} height={smoothGrid().height} />
           <g class="items">
             <For each={state.waypoints}>{(waypoint) => {
-              // When captured, fade out and fly to me
-              const [opacity] = createSpring(createMemo(() => (isCaptured(waypoint.id) ? 0 : 1), magnetSpringSettings));
-
-              const point = createMemo(() => {
-                // When captured, fly to me (like a magnet) (if opacity === 0, also use fixed value)
-                const lon = (!isCaptured(waypoint.id) || opacity() === 0) ? waypoint.longitude : state.me?.location?.longitude ?? waypoint.longitude;
-                const lat = (!isCaptured(waypoint.id) || opacity() === 0) ? waypoint.latitude : state.me?.location?.latitude ?? waypoint.latitude;
-                return Point
-                  .create(lon, lat)
-                  .transform(locationsToScreenTransform());
+              const location = createMemo(() => {
+                // When captured, fly to me (like a magnet)
+                const lon = (!isCaptured(waypoint.id)) ? waypoint.longitude : state.me?.location?.longitude ?? waypoint.longitude;
+                const lat = (!isCaptured(waypoint.id)) ? waypoint.latitude : state.me?.location?.latitude ?? waypoint.latitude;
+                return Point.create(lon, lat);
               });
 
-              const [position] = createSpring(point, magnetSpringSettings);
+              const show = createMemo(() => {
+                if (isCaptured(waypoint.id)) return false;
+                if (!viewBox().containsPoint(location())) return false;
+                return true;
+              });
+
+              // When captured, fade out and fly to me
+              const [smoothOpacity] = createSpring(createMemo(() => (show() ? 1 : 0), magnetSpringSettings));
+              const position = createMemo(() => location().transform(locationsToScreenTransform()));
+              const [smoothPosition] = createSpring(position, magnetSpringSettings);
 
               return (
-                <Show when={opacity() > 0}>
-                  <CoinWaypoint x={position().left} y={position().top} opacity={opacity()}/>;
+                <Show when={smoothOpacity()}>
+                  <CoinWaypoint x={smoothPosition().left} y={smoothPosition().top} opacity={smoothOpacity()}/>;
                 </Show>
               );
             }}</For>
