@@ -234,7 +234,16 @@ export const TopView = () => {
 
               const show = createMemo(() => {
                 if (isCaptured(waypoint.id)) return false;
-                if (!viewBox().containsPoint(location())) return false;
+
+                // Only show items within the viewable distance
+                const distanceInMeter = Vector
+                  .create(
+                    (state.me?.location?.longitude ?? 0) - location().left,
+                    (state.me?.location?.latitude ?? 0) - location().top,
+                  )
+                  .transform(Transform.identity.scaleByVector(location2MetersScale()))
+                  .getLength();
+                if (distanceInMeter > (state.me?.viewDistanceInMeter ?? Infinity)) return false;
                 return true;
               });
 

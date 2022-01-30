@@ -31,7 +31,7 @@ export function ViewMask(props: {
         width="100%"
         height="100%"
         mask="url('#view-circle-mask')"
-        fill="white"
+        fill="rgba(255,255,255,0.7)"
       />
     </g>
   );
