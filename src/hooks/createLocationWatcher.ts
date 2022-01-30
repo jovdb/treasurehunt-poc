@@ -2,7 +2,6 @@ import { findNearest } from "geolib";
 
 import { createGeolocationWatcher } from "@solid-primitives/geolocation";
 import {
-  batch,
   createMemo, createSignal, onCleanup, onMount,
 } from "solid-js";
 
@@ -14,14 +13,13 @@ export function createLocationWatcher() {
   const [location, locationError] = createGeolocationWatcher(true);
 
   // Location to use (simulated or real geo location)
-  const [myLon, setMyLon] = createSignal(0);
-  const [myLat, setMyLat] = createSignal(0);
+  const [myLocation, setMyLocationLocal] = createSignal<ILocation>({
+    longitude: 0,
+    latitude: 0,
+  });
 
   function getClosestWaypoint() {
-    const closestLocation = findNearest({
-      latitude: myLat(),
-      longitude: myLon(),
-    }, state.waypoints as unknown as ILocation[]) as ILocation;
+    const closestLocation = findNearest(myLocation(), state.waypoints as unknown as ILocation[]) as ILocation;
 
     const index = state.waypoints.findIndex((waypoint) => waypoint.longitude === closestLocation.longitude && waypoint.latitude === closestLocation.latitude);
     return [state.waypoints[index], index] as const;
@@ -38,10 +36,10 @@ export function createLocationWatcher() {
     const dx = Math.cos(angle) * speed;
     const dy = Math.sin(angle) * speed;
 
-    batch(() => {
-      setMyLon((prev) => prev + dx);
-      setMyLat((prev) => prev + dy);
-    });
+    setMyLocationLocal((prev) => ({
+      longitude: prev.longitude + dx,
+      latitude: prev.latitude + dy,
+    }));
     walkingTimer = setTimeout(moveRandom, 150 + Math.random() * 200) as unknown as number;
   }
 
@@ -50,18 +48,18 @@ export function createLocationWatcher() {
     switch (e.key) {
       case "Home": {
         const { longitude, latitude } = state.waypoints[0];
-        batch(() => {
-          setMyLon(longitude);
-          setMyLat(latitude);
+        setMyLocationLocal({
+          longitude,
+          latitude,
         });
         break;
       }
 
       case "End": {
         const { longitude, latitude } = state.waypoints[state.waypoints.length - 1];
-        batch(() => {
-          setMyLon(longitude);
-          setMyLat(latitude);
+        setMyLocationLocal({
+          longitude,
+          latitude,
         });
         break;
       }
@@ -81,39 +79,51 @@ export function createLocationWatcher() {
       case "PageUp": {
         const [, index] = getClosestWaypoint();
         const nextIndex = Math.max(0, Math.min(state.waypoints.length - 1, index + 1));
-        const nextWaypoint = state.waypoints[nextIndex];
-        batch(() => {
-          setMyLon(nextWaypoint.longitude);
-          setMyLat(nextWaypoint.latitude);
+        const { longitude, latitude } = state.waypoints[nextIndex];
+        setMyLocationLocal({
+          longitude,
+          latitude,
         });
         break;
       }
 
       case "PageDown": {
         const [, index] = getClosestWaypoint();
-        const nextIndex = Math.max(0, Math.min(state.waypoints.length - 1, index - 1));
-        const nextWaypoint = state.waypoints[nextIndex];
-        batch(() => {
-          setMyLon(nextWaypoint.longitude);
-          setMyLat(nextWaypoint.latitude);
+        const prevIndex = Math.max(0, Math.min(state.waypoints.length - 1, index - 1));
+        const { longitude, latitude } = state.waypoints[prevIndex];
+        setMyLocationLocal({
+          longitude,
+          latitude,
         });
         break;
       }
 
       case "ArrowLeft":
-        setMyLon((prev) => prev - 0.00004);
+        setMyLocationLocal((prev) => ({
+          ...prev,
+          longitude: prev.longitude - 0.00004,
+        }));
         break;
 
       case "ArrowRight":
-        setMyLon((prev) => prev + 0.00004);
+        setMyLocationLocal((prev) => ({
+          ...prev,
+          longitude: prev.longitude + 0.00004,
+        }));
         break;
 
       case "ArrowUp":
-        setMyLat((prev) => prev + 0.00002);
+        setMyLocationLocal((prev) => ({
+          ...prev,
+          latitude: prev.latitude + 0.00002,
+        }));
         break;
 
       case "ArrowDown":
-        setMyLat((prev) => prev - 0.00002);
+        setMyLocationLocal((prev) => ({
+          ...prev,
+          latitude: prev.latitude - 0.00002,
+        }));
         break;
 
       default:
@@ -131,22 +141,16 @@ export function createLocationWatcher() {
 
   // Get screen location from GPS location
   createMemo(() => {
-    batch(() => {
-      setMyLon(location()?.longitude || 0);
-      setMyLat((location()?.latitude || 0));
+    setMyLocationLocal({
+      longitude: location()?.longitude || 0,
+      latitude: location()?.latitude || 0,
     });
   });
 
   // Update state on location changex
   createMemo(() => {
     // Don't create a new object with the same values
-    if (myLon() === state.me?.location?.longitude && myLat() === state.me?.location?.latitude) return;
-
-    const newLocation: ILocation = {
-      longitude: myLon(),
-      latitude: myLat(),
-    };
-
-    setMyLocation(newLocation, locationError());
+    if (myLocation().longitude === state.me?.location?.longitude && myLocation().latitude === state.me?.location?.latitude) return;
+    setMyLocation(myLocation(), locationError());
   });
 }
