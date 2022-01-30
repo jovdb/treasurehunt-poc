@@ -8,6 +8,8 @@ import {
 import { getDistance } from "geolib";
 
 import {
+  getNextWaypoint,
+  getViewDistanceInMeter,
   isCaptured, setMagnetDistance, setMyInfo, setViewDistance, state,
 } from "../../store/store";
 import { Point } from "../../math/Point";
@@ -32,6 +34,7 @@ import { Transform } from "../../math/Transform";
 import { MagnetCircle } from "../MagnetCircle/MagnetCircle";
 import { ViewMask } from "../ViewMask/ViewMask";
 import { WalkTrail } from "../WalkTrail/WalkTrail";
+import { DirectionArrow } from "../DirectionArrow/DirectionArrow";
 
 const springSettings: ISpringBehavior = {
   stiffness: 0.1,
@@ -40,16 +43,18 @@ const magnetSpringSettings: ISpringBehavior = {};
 
 function createViewDistanceChanger() {
   // Change location with keypresses (dragging won't help if we move the map)
+  const viewDistanceInMeter = getViewDistanceInMeter();
+
   function onKeyDown(e: KeyboardEvent) {
     // eslint-disable-next-line default-case
     switch (e.key) {
       case "+": {
-        setViewDistance((state.me?.viewDistanceInMeter ?? 50) + 10);
+        setViewDistance(viewDistanceInMeter + 10);
         break;
       }
 
       case "-": {
-        setViewDistance((state.me?.viewDistanceInMeter ?? 50) - 10);
+        setViewDistance(viewDistanceInMeter - 10);
         break;
       }
     }
@@ -88,7 +93,7 @@ export const TopView = () => {
 
   /** Visible rectangle in geoCoordinates */
   const viewBox = createMemo(() => {
-    const viewDistanceInMeter = state.me?.viewDistanceInMeter ?? 50;
+    const viewDistanceInMeter = getViewDistanceInMeter();
     const viewLongitudeDistance = viewDistanceInMeter / location2MetersScale().width;
     const viewLatitudeDistance = viewDistanceInMeter / location2MetersScale().height;
     return Rect
@@ -210,6 +215,45 @@ export const TopView = () => {
   setMagnetDistance(10);
   setViewDistance(50);
 
+  /** offset to the next waypoint in geo location */
+  const nextLocationOffset = createMemo(() => {
+    const nextWaypoint = getNextWaypoint();
+    return Vector.create(
+      nextWaypoint.longitude - (state.me?.location?.longitude ?? 0),
+      nextWaypoint.latitude - (state.me?.location?.latitude ?? 0),
+    ); // Use Vector because it has angle methods
+  });
+
+  const distanceToNextWaypoint = createMemo(() => nextLocationOffset()
+    .scaleByVector(location2MetersScale())
+    .getLength());
+
+  // Use angle so we can animate as circle, and not in a straight line to new location
+  const directionArrowRad = createMemo<number>((prev) => {
+    const newValue = nextLocationOffset().getAngleRad();
+    if (prev === undefined) return newValue;
+    let delta = (newValue - prev) % (Math.PI * 2);
+    if (delta > Math.PI) delta -= Math.PI * 2;
+    else if (delta < -Math.PI) delta += Math.PI * 2;
+    return prev + delta;
+  });
+
+  const [smoothDirectionArrowDeg] = createSpring(directionArrowRad, springSettings);
+
+  // Work in geo coordinates
+  const directionArrowPosition = createMemo(() => Point
+    .fromObject(mySmoothPosition())
+    .transform(Transform.fromObject(smoothLocationToScreenTransform()).inverse()) // Back to geo coordinates
+    .addPoint(
+      Point
+        .fromTuple(Vector
+          .fromAngleRad(smoothDirectionArrowDeg())
+          .scale(getViewDistanceInMeter()) // vector with distance = viewDistance in meter
+          .scaleByVector(location2MetersScale().inverse()) // vector with distance = viewDistance in geoCoordinates
+          .toTuple()), // Vector to Point
+    )
+    .transform(smoothLocationToScreenTransform()));
+
   return (
     <div
       class={styles.TopView}
@@ -262,11 +306,13 @@ export const TopView = () => {
 
           <MyWayPoint gender={state.me?.gender ?? "male"} x={mySmoothPosition().left} y={mySmoothPosition().top} />
           <ViewMask x={smoothViewMask().x} y={smoothViewMask().y} radiusX={smoothViewMask().radiusX} radiusY={smoothViewMask().y} />
+          <DirectionArrow x={directionArrowPosition().left} y={directionArrowPosition().top} distanceInMeter={distanceToNextWaypoint()}/>
         </svg>
       </GeoLocationError>
 
       <div style={{ position: "absolute", top: "10px", right: "10px" }}>
         <SignalLogger obj={{
+          smoothNextOffset: nextLocationOffset,
         }} />
       </div>
     </div>

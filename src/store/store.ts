@@ -163,3 +163,11 @@ export function setViewDistance(distanceInMeter: number) {
     setState("me", "viewDistanceInMeter", Math.max(20, distanceInMeter));
   });
 }
+
+export function getNextWaypoint() {
+  return getUncapturedWaypoints()[0];
+}
+
+export function getViewDistanceInMeter() {
+  return state.me?.viewDistanceInMeter || 30;
+}
