@@ -76,8 +76,7 @@ export const TopView = () => {
     onResize: (size) => setSvgRect(Rect.create(0, 0, size.width, size.height)),
   });
 
-  // Temp: randomly scale field
-  const viewRect = createMemo(() => svgRect().grow(-20));
+  const viewRect = createMemo(() => svgRect().grow(0));
 
   const locationBounds = createMemo(() => Rect
     .fromPoints(state.waypoints.map((loc) => Point.create(loc.longitude, loc.latitude))));
@@ -218,6 +217,7 @@ export const TopView = () => {
   /** offset to the next waypoint in geo location */
   const nextLocationOffset = createMemo(() => {
     const nextWaypoint = getNextWaypoint();
+    if (!nextWaypoint) return Vector.create(0, 0);
     return Vector.create(
       nextWaypoint.longitude - (state.me?.location?.longitude ?? 0),
       nextWaypoint.latitude - (state.me?.location?.latitude ?? 0),
@@ -238,21 +238,36 @@ export const TopView = () => {
     return prev + delta;
   });
 
-  const [smoothDirectionArrowDeg] = createSpring(directionArrowRad, springSettings);
+  const [smoothDirectionArrowRad] = createSpring(directionArrowRad, {
+    mass: 10,
+    damping: 2.5,
+    precision: 0.0001,
+  });
 
   // Work in geo coordinates
   const directionArrowPosition = createMemo(() => Point
     .fromObject(mySmoothPosition())
-    .transform(Transform.fromObject(smoothLocationToScreenTransform()).inverse()) // Back to geo coordinates
+    .transform(Transform.fromObject(locationsToScreenTransform()).inverse()) // Back to geo coordinates
+
+    // Add offset to viewDistance
     .addPoint(
       Point
         .fromTuple(Vector
-          .fromAngleRad(smoothDirectionArrowDeg())
+          .fromAngleRad(smoothDirectionArrowRad())
           .scale(getViewDistanceInMeter()) // vector with distance = viewDistance in meter
           .scaleByVector(location2MetersScale().inverse()) // vector with distance = viewDistance in geoCoordinates
           .toTuple()), // Vector to Point
     )
-    .transform(smoothLocationToScreenTransform()));
+    .transform(locationsToScreenTransform())
+
+    // Add offset margin
+    .addPoint(
+      Point
+        .fromTuple(Vector
+          .fromAngleRad(smoothDirectionArrowRad())
+          .scale(30, -30)
+          .toTuple()), // Vector to Point
+    ));
 
   return (
     <div
@@ -306,7 +321,7 @@ export const TopView = () => {
 
           <MyWayPoint gender={state.me?.gender ?? "male"} x={mySmoothPosition().left} y={mySmoothPosition().top} />
           <ViewMask x={smoothViewMask().x} y={smoothViewMask().y} radiusX={smoothViewMask().radiusX} radiusY={smoothViewMask().y} />
-          <DirectionArrow x={directionArrowPosition().left} y={directionArrowPosition().top} distanceInMeter={distanceToNextWaypoint()}/>
+          <DirectionArrow x={directionArrowPosition().left} y={directionArrowPosition().top} distanceInMeter={distanceToNextWaypoint()} angle={smoothDirectionArrowRad()}/>
         </svg>
       </GeoLocationError>
 

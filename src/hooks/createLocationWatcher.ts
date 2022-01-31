@@ -37,8 +37,8 @@ export function createLocationWatcher() {
     const dy = Math.sin(angle) * speed;
 
     setMyLocationLocal((prev) => ({
-      longitude: prev.longitude + dx,
-      latitude: prev.latitude + dy,
+      longitude: (prev?.longitude ?? 0) + dx,
+      latitude: (prev?.latitude ?? 0) + dy,
     }));
     walkingTimer = setTimeout(moveRandom, 150 + Math.random() * 200) as unknown as number;
   }
