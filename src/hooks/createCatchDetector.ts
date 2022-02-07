@@ -5,6 +5,7 @@ import { getDistanceFromLine } from "geolib";
 import { state, isCaptured, setCaptured } from "../store/store";
 import coinMp3Url from "../Audio/coin.mp3";
 
+/** Latest value is at the end */
 export function createLastValues<T>(accessor: Accessor<T>, length = 10) {
   return createMemo<T[]>((prev) => ([...prev, accessor()].slice(-length)), []);
 }
