@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { findNearest } from "geolib";
 
 import { createGeolocationWatcher } from "@solid-primitives/geolocation";
