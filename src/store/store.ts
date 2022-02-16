@@ -7,14 +7,24 @@ interface IMe {
   gender: "male" | "female" | undefined;
   location: ILocation | undefined;
   locationError: GeolocationPositionError | undefined;
-  magnetDistanceInMeter: number | undefined;
-  viewDistanceInMeter: number | undefined;
+  magnetDistanceInMeter: number;
+  viewDistanceInMeter: number;
 }
 
 interface IStore {
   waypoints: Waypoints[];
-  me: IMe | undefined;
+  me: IMe;
   captured: Record<WaypointId, boolean>; // Currently only true
+}
+
+function createDefaultMe(): IMe {
+  return {
+    gender: undefined,
+    location: undefined,
+    locationError: undefined,
+    magnetDistanceInMeter: 10,
+    viewDistanceInMeter: 30,
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -96,38 +106,26 @@ export const [state, setState] = createStore<IStore>({
       longitude: 4.104639,
     },
   ],
-  me: undefined,
+  me: createDefaultMe(),
   captured: {},
 });
 
 export function setMyInfo(gender: IMe["gender"]) {
-  setState("me", (me) => {
-    if (!me) return { gender };
-    return {
-      ...me,
-      gender,
-    };
-  });
+  setState("me", (me) => ({
+    ...me,
+    gender,
+  }));
 }
 
 export function setMyLocation(
   location: ILocation | undefined,
   locationError: GeolocationPositionError | null,
 ) {
-  setState("me", (me) => {
-    if (!me) {
-      return {
-        location,
-        locationError: locationError || undefined,
-      };
-    }
-
-    return {
-      ...me,
-      location,
-      locationError: locationError || undefined,
-    };
-  });
+  setState("me", (me) => ({
+    ...me,
+    location,
+    locationError: locationError || undefined,
+  }));
 }
 
 export function setCaptured(
@@ -151,17 +149,11 @@ export function getUncapturedWaypoints() {
 }
 
 export function setMagnetDistance(distanceInMeter: number) {
-  batch(() => {
-    setState("me", (prev) => prev || {});
-    setState("me", "magnetDistanceInMeter", distanceInMeter);
-  });
+  setState("me", "magnetDistanceInMeter", distanceInMeter);
 }
 
-export function setViewDistance(distanceInMeter: number) {
-  batch(() => {
-    setState("me", (prev) => prev || {});
-    setState("me", "viewDistanceInMeter", Math.max(20, distanceInMeter));
-  });
+export function setViewDistance(distanceInMeter: (prev: number) => number) {
+  setState("me", "viewDistanceInMeter", (prev) => Math.max(20, distanceInMeter(prev)));
 }
 
 export function getNextWaypoint() {
@@ -173,8 +165,4 @@ export function getNextWaypoint() {
 
   const index = state.waypoints.indexOf(lastCapturedWaypoint);
   return state.waypoints[index + 1];
-}
-
-export function getViewDistanceInMeter() {
-  return state.me?.viewDistanceInMeter || 30;
 }

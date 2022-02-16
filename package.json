@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "description": "",
   "scripts": {
-    "start": "vite",
+    "start": "vite --host --https",
     "build": "vite build",
-    "serve": "vite preview",
+    "serve": "vite preview --host --https",
     "eslint": "eslint . --ext .ts,.tsx",
     "eslint:fix": "eslint . --ext .ts,.tsx --fix",
     "test": "jest"

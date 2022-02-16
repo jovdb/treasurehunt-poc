@@ -9,7 +9,6 @@ import { getDistance } from "geolib";
 
 import {
   getNextWaypoint,
-  getViewDistanceInMeter,
   isCaptured, setMagnetDistance, setMyInfo, setViewDistance, state,
 } from "../../store/store";
 import { Point } from "../../math/Point";
@@ -44,18 +43,16 @@ const magnetSpringSettings: ISpringBehavior = {};
 
 function createViewDistanceChanger() {
   // Change location with keypresses (dragging won't help if we move the map)
-  const viewDistanceInMeter = getViewDistanceInMeter();
-
   function onKeyDown(e: KeyboardEvent) {
     // eslint-disable-next-line default-case
     switch (e.key) {
       case "+": {
-        setViewDistance(viewDistanceInMeter + 10);
+        setViewDistance((viewDistanceInMeter) => viewDistanceInMeter + 10);
         break;
       }
 
       case "-": {
-        setViewDistance(viewDistanceInMeter - 10);
+        setViewDistance((viewDistanceInMeter) => viewDistanceInMeter - 10);
         break;
       }
     }
@@ -93,13 +90,13 @@ export const TopView = () => {
 
   /** Visible rectangle in geoCoordinates */
   const viewBox = createMemo(() => {
-    const viewDistanceInMeter = getViewDistanceInMeter();
+    const { viewDistanceInMeter } = state.me;
     const viewLongitudeDistance = viewDistanceInMeter / location2MetersScale().width;
     const viewLatitudeDistance = viewDistanceInMeter / location2MetersScale().height;
     return Rect
       .create(
-        (state.me?.location?.longitude ?? 0) - viewLongitudeDistance,
-        (state.me?.location?.latitude ?? 0) - viewLatitudeDistance,
+        (state.me.location?.longitude ?? 0) - viewLongitudeDistance,
+        (state.me.location?.latitude ?? 0) - viewLatitudeDistance,
         viewLongitudeDistance * 2,
         viewLatitudeDistance * 2,
       );
@@ -137,7 +134,7 @@ export const TopView = () => {
 
   // Convert location to screen coordinates
   const myLocationOnScreen = createMemo(() => {
-    const mylocation = state.me?.location;
+    const mylocation = state.me.location;
     return Point
       .create(mylocation?.longitude || 0, mylocation?.latitude || 0)
       .transform(locationsToScreenTransform());
@@ -148,7 +145,7 @@ export const TopView = () => {
 
   // Magnet
   const smoothMagnetSize = createMemo(() => {
-    const radiusInMeter = state.me?.magnetDistanceInMeter ?? 10;
+    const radiusInMeter = state.me.magnetDistanceInMeter;
     const meterToScreen = Transform
       .identity
       .scaleByVector(location2MetersScale()) // Location to meter
@@ -183,7 +180,7 @@ export const TopView = () => {
   const [smoothViewMask] = createSpring(viewMask, springSettings);
 
   // Trail
-  const lastPositions = takeLast(createMemo(() => state.me?.location), 50);
+  const lastPositions = takeLast(createMemo(() => state.me.location), 50);
 
   // Create flat number so we can animate them
   const flatTrailValues = createMemo(() => lastPositions().reduce<number[]>((p, location) => {
@@ -212,16 +209,14 @@ export const TopView = () => {
   });
 
   setMyInfo("male");
-  setMagnetDistance(10);
-  setViewDistance(50);
 
   /** offset to the next waypoint in geo location */
   const nextLocationOffset = createMemo(() => {
     const nextWaypoint = getNextWaypoint();
     if (!nextWaypoint) return Vector.create(0, 0);
     return Vector.create(
-      nextWaypoint.longitude - (state.me?.location?.longitude ?? 0),
-      nextWaypoint.latitude - (state.me?.location?.latitude ?? 0),
+      nextWaypoint.longitude - (state.me.location?.longitude ?? 0),
+      nextWaypoint.latitude - (state.me.location?.latitude ?? 0),
     ); // Use Vector because it has angle methods
   });
 
@@ -256,7 +251,7 @@ export const TopView = () => {
       Point
         .fromTuple(Vector
           .fromAngleRad(smoothDirectionArrowRad())
-          .scale(getViewDistanceInMeter()) // vector with distance = viewDistance in meter
+          .scale(state.me.viewDistanceInMeter) // vector with distance = viewDistance in meter
           .scaleByVector(location2MetersScale().inverse()) // vector with distance = viewDistance in geoCoordinates
           .toTuple()), // Vector to Point
     )
@@ -276,7 +271,7 @@ export const TopView = () => {
       class={styles.TopView}
       ref={refCallback}
     >
-      <GeoLocationError code={state.me?.locationError?.code || 0} >
+      <GeoLocationError code={state.me.locationError?.code || 0} >
         <svg
           class={styles.TopView_svg}
         >
@@ -288,8 +283,8 @@ export const TopView = () => {
             <For each={state.waypoints}>{(waypoint) => {
               const location = createMemo(() => {
                 // When captured, fly to me (like a magnet)
-                const lon = (!isCaptured(waypoint.id)) ? waypoint.longitude : state.me?.location?.longitude ?? waypoint.longitude;
-                const lat = (!isCaptured(waypoint.id)) ? waypoint.latitude : state.me?.location?.latitude ?? waypoint.latitude;
+                const lon = (!isCaptured(waypoint.id)) ? waypoint.longitude : state.me.location?.longitude ?? waypoint.longitude;
+                const lat = (!isCaptured(waypoint.id)) ? waypoint.latitude : state.me.location?.latitude ?? waypoint.latitude;
                 return Point.create(lon, lat);
               });
 
@@ -299,12 +294,12 @@ export const TopView = () => {
                 // Only show items within the viewable distance
                 const distanceInMeter = Vector
                   .create(
-                    (state.me?.location?.longitude ?? 0) - location().left,
-                    (state.me?.location?.latitude ?? 0) - location().top,
+                    (state.me.location?.longitude ?? 0) - location().left,
+                    (state.me.location?.latitude ?? 0) - location().top,
                   )
                   .transform(Transform.identity.scaleByVector(location2MetersScale()))
                   .getLength();
-                if (distanceInMeter > (state.me?.viewDistanceInMeter ?? Infinity)) return false;
+                if (distanceInMeter > (state.me.viewDistanceInMeter)) return false;
                 return true;
               });
 
@@ -321,7 +316,7 @@ export const TopView = () => {
             }}</For>
           </g>
 
-          <MyWayPoint gender={state.me?.gender ?? "male"} x={mySmoothPosition().left} y={mySmoothPosition().top} />
+          <MyWayPoint gender={state.me.gender ?? "male"} x={mySmoothPosition().left} y={mySmoothPosition().top} />
           <ViewMask x={smoothViewMask().x} y={smoothViewMask().y} radiusX={smoothViewMask().radiusX} radiusY={smoothViewMask().radiusY} />
           <DirectionArrow x={directionArrowPosition().left} y={directionArrowPosition().top} distanceInMeter={distanceToNextWaypoint()} angle={smoothDirectionArrowRad()}/>
         </svg>

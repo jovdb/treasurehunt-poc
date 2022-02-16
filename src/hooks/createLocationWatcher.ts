@@ -151,7 +151,7 @@ export function createLocationWatcher() {
   // Update state on location changex
   createMemo(() => {
     // Don't create a new object with the same values
-    if (myLocation().longitude === state.me?.location?.longitude && myLocation().latitude === state.me?.location?.latitude) return;
+    if (myLocation().longitude === state.me.location?.longitude && myLocation().latitude === state.me.location?.latitude) return;
     setMyLocation(myLocation(), locationError());
   });
 }

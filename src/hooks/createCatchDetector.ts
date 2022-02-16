@@ -21,14 +21,14 @@ function createAudio(mp3Url: string) {
 const coinAudio = createAudio(coinMp3Url);
 
 export function createCatcheDetector() {
-  const location = createMemo(() => state.me?.location);
+  const location = createMemo(() => state.me.location);
   const previousValues = takeLast(location, 2);
 
   createMemo(() => {
     const prev = previousValues()[0];
     const current = location();
     if (!prev || !current) return;
-    const captureDistanceInMeter = state.me?.magnetDistanceInMeter ?? 10;
+    const captureDistanceInMeter = state.me.magnetDistanceInMeter;
 
     const captured = state.waypoints
       .filter((waypoint) => !isCaptured(waypoint.id))
