@@ -1,14 +1,10 @@
 /* eslint-disable no-plusplus */
-import { Accessor, batch, createMemo } from "solid-js";
+import { batch, createMemo } from "solid-js";
 import { getDistanceFromLine } from "geolib";
 
+import { takeLast } from "../utils/signal-helpers";
 import { state, isCaptured, setCaptured } from "../store/store";
 import coinMp3Url from "../Audio/coin.mp3";
-
-/** Latest value is at the end */
-export function createLastValues<T>(accessor: Accessor<T>, length = 10) {
-  return createMemo<T[]>((prev) => ([...prev, accessor()].slice(-length)), []);
-}
 
 /** Create 2 audio instances, so we can play before the previous is finished */
 function createAudio(mp3Url: string) {
@@ -26,7 +22,7 @@ const coinAudio = createAudio(coinMp3Url);
 
 export function createCatcheDetector() {
   const location = createMemo(() => state.me?.location);
-  const previousValues = createLastValues(location, 2);
+  const previousValues = takeLast(location, 2);
 
   createMemo(() => {
     const prev = previousValues()[0];

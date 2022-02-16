@@ -27,7 +27,7 @@ import { CoinWaypoint } from "../CoinWaypoint/CoinWaypoint";
 import styles from "./TopView.module.css";
 import { GeoLocationError } from "../GeoLocationError";
 import { createLocationWatcher } from "../../hooks/createLocationWatcher";
-import { createCatcheDetector, createLastValues } from "../../hooks/createCatchDetector";
+import { createCatcheDetector } from "../../hooks/createCatchDetector";
 import { Grid } from "../Grid/Grid";
 import { Vector } from "../../math/Vector";
 import { Transform } from "../../math/Transform";
@@ -35,6 +35,7 @@ import { MagnetCircle } from "../MagnetCircle/MagnetCircle";
 import { ViewMask } from "../ViewMask/ViewMask";
 import { WalkTrail } from "../WalkTrail/WalkTrail";
 import { DirectionArrow } from "../DirectionArrow/DirectionArrow";
+import { takeLast } from "../../utils/signal-helpers";
 
 const springSettings: ISpringBehavior = {
   stiffness: 0.1,
@@ -182,7 +183,7 @@ export const TopView = () => {
   const [smoothViewMask] = createSpring(viewMask, springSettings);
 
   // Trail
-  const lastPositions = createLastValues(createMemo(() => state.me?.location), 50);
+  const lastPositions = takeLast(createMemo(() => state.me?.location), 50);
 
   // Create flat number so we can animate them
   const flatTrailValues = createMemo(() => lastPositions().reduce<number[]>((p, location) => {

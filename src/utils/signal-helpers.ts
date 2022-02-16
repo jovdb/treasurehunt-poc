@@ -3,10 +3,15 @@
 import {
   Accessor,
   onCleanup, onMount,
-  createEffect, createSignal, batch,
+  createEffect, createSignal, batch, createMemo,
 } from "solid-js";
 
-export function throttleSignals<TSignals extends Accessor<any>[]>(
+/** Latest value is at the end */
+export function takeLast<T>(accessor: Accessor<T>, length: number) {
+  return createMemo<T[]>((prev) => ([...prev, accessor()].slice(-length)), []);
+}
+
+export function throttle<TSignals extends Accessor<any>[]>(
   signals: TSignals,
   intervalInMs: number,
 ): TSignals {
