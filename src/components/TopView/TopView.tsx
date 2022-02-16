@@ -1,5 +1,5 @@
-/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable no-console */
 
 import createResizeObserver from "@solid-primitives/resize-observer";
 import {
@@ -167,12 +167,12 @@ export const TopView = () => {
       .getCenter()
       .transform(locationsToScreenTransform());
     const size = viewBox()
-      .transform(locationsToScreenTransform());
+      .transform(locationsToScreenTransform())
+      .normalize();
 
     // TODO: fix, seems to have a bug?
     const radiusX = size.width / 2;
     const radiusY = size.height / 2;
-
     return {
       x: left,
       y: top,
@@ -321,7 +321,7 @@ export const TopView = () => {
           </g>
 
           <MyWayPoint gender={state.me?.gender ?? "male"} x={mySmoothPosition().left} y={mySmoothPosition().top} />
-          <ViewMask x={smoothViewMask().x} y={smoothViewMask().y} radiusX={smoothViewMask().radiusX} radiusY={smoothViewMask().y} />
+          <ViewMask x={smoothViewMask().x} y={smoothViewMask().y} radiusX={smoothViewMask().radiusX} radiusY={smoothViewMask().radiusY} />
           <DirectionArrow x={directionArrowPosition().left} y={directionArrowPosition().top} distanceInMeter={distanceToNextWaypoint()} angle={smoothDirectionArrowRad()}/>
         </svg>
       </GeoLocationError>
