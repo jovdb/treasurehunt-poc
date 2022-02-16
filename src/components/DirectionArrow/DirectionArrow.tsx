@@ -21,7 +21,10 @@ export function DirectionArrow(props: {
     <Show when={props.distanceInMeter}>
       <g
         class="direction-arrow"
-        style={{ transform: `translate(${props.x}px, ${props.y}px) rotate(${props.angle + Math.PI / 2}rad)` }}
+        style={{
+          "user-select": "none",
+          transform: `translate(${props.x}px, ${props.y}px) rotate(${props.angle + Math.PI / 2}rad)`,
+        }}
       >
         <defs>
           <linearGradient id="direction-gradient" x1="0%" y1="0%" x2="0%" y2="100%">

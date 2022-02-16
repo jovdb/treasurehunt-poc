@@ -77,7 +77,7 @@ export const TopView = () => {
     onResize: (size) => setSvgRect(Rect.create(0, 0, size.width, size.height)),
   });
 
-  const viewRect = createMemo(() => svgRect().grow(0));
+  const viewRect = createMemo(() => svgRect().grow(-50));
 
   const locationBounds = createMemo(() => Rect
     .fromPoints(state.waypoints.map((loc) => Point.create(loc.longitude, loc.latitude))));
@@ -246,6 +246,7 @@ export const TopView = () => {
   });
 
   // Work in geo coordinates
+  const arrowMarginPx = 30;
   const directionArrowPosition = createMemo(() => Point
     .fromObject(mySmoothPosition())
     .transform(Transform.fromObject(locationsToScreenTransform()).inverse()) // Back to geo coordinates
@@ -266,7 +267,7 @@ export const TopView = () => {
       Point
         .fromTuple(Vector
           .fromAngleRad(smoothDirectionArrowRad())
-          .scale(30, -30)
+          .scale(arrowMarginPx, -arrowMarginPx)
           .toTuple()), // Vector to Point
     ));
 
