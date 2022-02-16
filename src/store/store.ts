@@ -165,7 +165,14 @@ export function setViewDistance(distanceInMeter: number) {
 }
 
 export function getNextWaypoint() {
-  return getUncapturedWaypoints()[0];
+  const lastCapturedWaypoint = state.waypoints
+    .slice()
+    .reverse()
+    .find((waypoint) => isCaptured(waypoint.id));
+  if (!lastCapturedWaypoint) return state.waypoints[0];
+
+  const index = state.waypoints.indexOf(lastCapturedWaypoint);
+  return state.waypoints[index + 1];
 }
 
 export function getViewDistanceInMeter() {
