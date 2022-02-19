@@ -1,7 +1,7 @@
 import { ImageWaypoint } from "../ImageWaypoint/ImageWaypoint";
-import coinUrl from "./coin.gif";
+import binocularUrl from "./binocular1.gif";
 
-export function CoinWaypoint(props: {
+export function BinocularWaypoint(props: {
   x: number;
   y: number;
   opacity?: number;
@@ -10,7 +10,7 @@ export function CoinWaypoint(props: {
     x={props.x}
     y={props.y}
     opacity={props.opacity}
-    imageUrl={coinUrl}
-    size={30}
+    imageUrl={binocularUrl}
+    size={40}
   />;
 }

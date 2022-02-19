@@ -6,7 +6,7 @@ export function DirectionArrow(props: {
   distanceInMeter: number;
   angle: number;
 }) {
-  const arrowSize = 20;
+  const arrowSize = 30;
   const fontSize = "14px";
 
   // Orientate test so it stays readable

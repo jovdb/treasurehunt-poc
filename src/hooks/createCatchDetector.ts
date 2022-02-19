@@ -3,8 +3,11 @@ import { batch, createMemo } from "solid-js";
 import { getDistanceFromLine } from "geolib";
 
 import { takeLast } from "../utils/signal-helpers";
-import { state, isCaptured, setCaptured } from "../store/store";
-import coinMp3Url from "../Audio/coin.mp3";
+import {
+  state, isCaptured, setCaptured, setViewDistance,
+} from "../store/store";
+import coinMp3Url from "../audio/coin.mp3";
+import binocularMp3Url from "../audio/binocular.mp3";
 
 /** Create 2 audio instances, so we can play before the previous is finished */
 function createAudio(mp3Url: string) {
@@ -19,6 +22,7 @@ function createAudio(mp3Url: string) {
 }
 
 const coinAudio = createAudio(coinMp3Url);
+const binocularAudio = createAudio(binocularMp3Url);
 
 export function createCatcheDetector() {
   const location = createMemo(() => state.me.location);
@@ -41,6 +45,13 @@ export function createCatcheDetector() {
         if (waypoint.type === "coin") {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           coinAudio.play();
+          window.navigator.vibrate(200);
+        }
+
+        if (waypoint.type === "binocular") {
+          setViewDistance((prevDistance) => prevDistance + 10);
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          binocularAudio.play();
         }
       });
     });

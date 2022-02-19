@@ -9,7 +9,7 @@ import { getDistance } from "geolib";
 
 import {
   getNextWaypoint,
-  isCaptured, setMagnetDistance, setMyInfo, setViewDistance, state,
+  isCaptured, setMyInfo, setViewDistance, state,
 } from "../../store/store";
 import { Point } from "../../math/Point";
 import { Rect } from "../../math/Rect";
@@ -21,7 +21,7 @@ import "../../math/features/transformVector";
 import { SignalLogger } from "../SignalLogger/SignalLogger";
 import { createSpring, ISpringBehavior } from "../../hooks/createSpring";
 import { MyWayPoint } from "../MyLocation/MyLocation";
-import { CoinWaypoint } from "../CoinWaypoint/CoinWaypoint";
+import { Waypoint } from "../Waypoint/Waypoint";
 
 import styles from "./TopView.module.css";
 import { GeoLocationError } from "../GeoLocationError";
@@ -241,7 +241,7 @@ export const TopView = () => {
   });
 
   // Work in geo coordinates
-  const arrowMarginPx = 30;
+  const arrowMarginPx = 15;
   const directionArrowPosition = createMemo(() => Point
     .fromObject(mySmoothPosition())
     .transform(Transform.fromObject(locationsToScreenTransform()).inverse()) // Back to geo coordinates
@@ -309,9 +309,12 @@ export const TopView = () => {
               const [smoothPosition] = createSpring(position, magnetSpringSettings);
 
               return (
-                <Show when={smoothOpacity()}>
-                  <CoinWaypoint x={smoothPosition().left} y={smoothPosition().top} opacity={smoothOpacity()}/>;
-                </Show>
+                <Waypoint
+                  waypoint={waypoint}
+                  x={smoothPosition().left}
+                  y={smoothPosition().top}
+                  opacity={smoothOpacity()}
+                />
               );
             }}</For>
           </g>

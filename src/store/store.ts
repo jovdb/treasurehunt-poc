@@ -81,7 +81,7 @@ export const [state, setState] = createStore<IStore>({
     },
 
     {
-      type: "coin",
+      type: "binocular",
       id: WaypointId.fromString("8"),
       latitude: 51.046048,
       longitude: 4.105499,
