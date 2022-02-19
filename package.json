@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "description": "",
   "scripts": {
-    "start": "vite --host --https",
+    "start": "vite",
+    "start:https": "vite --host --https",
     "build": "vite build",
     "serve": "vite preview --host --https",
     "eslint": "eslint . --ext .ts,.tsx",
