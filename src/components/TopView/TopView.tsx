@@ -18,7 +18,6 @@ import "../../math/features/fitInRect";
 import "../../math/features/transformPoint";
 import "../../math/features/transformVector";
 
-import { SignalLogger } from "../SignalLogger/SignalLogger";
 import { createSpring, ISpringBehavior } from "../../hooks/createSpring";
 import { MyWayPoint } from "../MyLocation/MyLocation";
 import { Waypoint } from "../Waypoint/Waypoint";

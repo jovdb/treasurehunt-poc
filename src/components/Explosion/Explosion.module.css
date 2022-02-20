@@ -1,0 +1,12 @@
+.Explosion__dot {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin-left: -0.25rem;
+    margin-top: -0.25rem;
+
+    background-color: var(--primary-color);
+    border-radius: 0.25rem;
+    width: 0.5rem;
+    height: 0.5rem;
+}
