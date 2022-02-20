@@ -27,6 +27,7 @@ import styles from "./TopView.module.css";
 import { GeoLocationError } from "../GeoLocationError";
 import { createLocationWatcher } from "../../hooks/createLocationWatcher";
 import { createCatcheDetector } from "../../hooks/createCatchDetector";
+import { createDistanceFeedback } from "../../hooks/createDistanceFeedback";
 import { Grid } from "../Grid/Grid";
 import { Vector } from "../../math/Vector";
 import { Transform } from "../../math/Transform";
@@ -223,6 +224,8 @@ export const TopView = () => {
   const distanceToNextWaypoint = createMemo(() => nextLocationOffset()
     .scaleByVector(location2MetersScale())
     .getLength());
+
+  createDistanceFeedback(distanceToNextWaypoint, createMemo(() => state.me.magnetDistanceInMeter));
 
   // Use angle so we can animate as circle, and not in a straight line to new location
   const directionArrowRad = createMemo<number>((prev) => {

@@ -45,7 +45,6 @@ export function createCatcheDetector() {
         if (waypoint.type === "coin") {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           coinAudio.play();
-          window.navigator.vibrate(200);
         }
 
         if (waypoint.type === "binocular") {
