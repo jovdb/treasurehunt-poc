@@ -3,7 +3,7 @@
 
 import createResizeObserver from "@solid-primitives/resize-observer";
 import {
-  createMemo, createSignal, For, onCleanup, onMount, Show,
+  createMemo, createSignal, For, onCleanup, onMount,
 } from "solid-js";
 import { getDistance } from "geolib";
 
@@ -22,7 +22,7 @@ import { SignalLogger } from "../SignalLogger/SignalLogger";
 import { createSpring, ISpringBehavior } from "../../hooks/createSpring";
 import { MyWayPoint } from "../MyLocation/MyLocation";
 import { Waypoint } from "../Waypoint/Waypoint";
-
+import { Score } from "../Score/Score";
 import styles from "./TopView.module.css";
 import { GeoLocationError } from "../GeoLocationError";
 import { createLocationWatcher } from "../../hooks/createLocationWatcher";
@@ -326,13 +326,8 @@ export const TopView = () => {
           <ViewMask x={smoothViewMask().x} y={smoothViewMask().y} radiusX={smoothViewMask().radiusX} radiusY={smoothViewMask().radiusY} />
           <DirectionArrow x={directionArrowPosition().left} y={directionArrowPosition().top} distanceInMeter={distanceToNextWaypoint()} angle={smoothDirectionArrowRad()}/>
         </svg>
+        <Score />
       </GeoLocationError>
-
-      <div style={{ position: "absolute", top: "10px", right: "10px" }}>
-        <SignalLogger obj={{
-          smoothNextOffset: nextLocationOffset,
-        }} />
-      </div>
     </div>
   );
 };

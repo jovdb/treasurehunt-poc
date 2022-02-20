@@ -24,7 +24,7 @@ export function createDistanceFeedback(
       // Map distance: 10m -> 500m, 100ms -> 2000ms
       const distanceToCatch = Math.max(0, distance() - magnetDistance());
       const delay = remapRange(0, 100, 80, 4000, distanceToCatch, false);
-      const frequency = remapRange(0, 100, 1200, 400, distanceToCatch, true);
+      const frequency = remapRange(0, 100, 1800, 400, distanceToCatch, true);
       const timeToNextPing = Math.max(0, delay - (Date.now() - lastPingTime));
 
       // Don't beep when too far away

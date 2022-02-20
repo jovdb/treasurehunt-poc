@@ -1,0 +1,14 @@
+.Score {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: #aaaaaa;
+}
+
+.Score__value {
+  width: 30px;
+  color: #888888;
+  font-size: 1.5em;
+  display: inline-block;
+  text-align: right;
+}

@@ -4,7 +4,7 @@ import { getDistanceFromLine } from "geolib";
 
 import { takeLast } from "../utils/signal-helpers";
 import {
-  state, isCaptured, setCaptured, setViewDistance,
+  state, isCaptured, setCaptured, setViewDistance, setScore,
 } from "../store/store";
 import coinMp3Url from "../audio/coin.mp3";
 import binocularMp3Url from "../audio/binocular.mp3";
@@ -45,6 +45,7 @@ export function createCatcheDetector() {
         if (waypoint.type === "coin") {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           coinAudio.play();
+          setScore((prevScore) => prevScore + 1);
         }
 
         if (waypoint.type === "binocular") {

@@ -1,3 +1,14 @@
+:root {
+  --font-size: 20px;
+}
+
 .App {
-    height: 100%;
+  height: 100%;
+  font-family: Dangrek;
+  font-size: var(--font-size);
+}
+
+@font-face {
+  font-family: "Dangrek";
+  src: url("./fonts/Dangrek.woff") format('woff');
 }

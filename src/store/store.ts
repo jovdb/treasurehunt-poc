@@ -1,4 +1,3 @@
-import { batch } from "solid-js";
 import { createStore } from "solid-js/store";
 import { ILocation, Waypoints } from "../types/WayPoint";
 import { WaypointId } from "../types/WayPointId";
@@ -15,6 +14,7 @@ interface IStore {
   waypoints: Waypoints[];
   me: IMe;
   captured: Record<WaypointId, boolean>; // Currently only true
+  score: number;
 }
 
 function createDefaultMe(): IMe {
@@ -84,7 +84,7 @@ export const [state, setState] = createStore<IStore>({
       type: "binocular",
       id: WaypointId.fromString("8"),
       latitude: 51.046048,
-      longitude: 4.105499,
+      longitude: 4.106499,
     },
 
     {
@@ -108,6 +108,7 @@ export const [state, setState] = createStore<IStore>({
   ],
   me: createDefaultMe(),
   captured: {},
+  score: 0,
 });
 
 export function setMyInfo(gender: IMe["gender"]) {
@@ -154,6 +155,10 @@ export function setMagnetDistance(distanceInMeter: number) {
 
 export function setViewDistance(distanceInMeter: (prev: number) => number) {
   setState("me", "viewDistanceInMeter", (prev) => Math.max(20, distanceInMeter(prev)));
+}
+
+export function setScore(getNewScore: (prev: number) => number) {
+  setState("score", (prev) => Math.max(0, getNewScore(prev)));
 }
 
 export function getNextWaypoint() {
