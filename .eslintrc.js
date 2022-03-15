@@ -11,6 +11,14 @@ module.exports = {
   ignorePatterns: [
     "dist",
     "node_modules",
+    "vite.config.ts",
+    "jest.config.ts",
+    "**/*.test.ts",
+
+    // Not used ATM
+    "createTween.ts",
+    "vector-point.ts",
+    "vector-rect.ts"
   ],
   parser: "@typescript-eslint/parser",
   parserOptions: {
@@ -27,6 +35,7 @@ module.exports = {
     "import/extensions": "off",
     "import/no-unresolved": "off",
     "import/prefer-default-export": "off",
+    "linebreak-style": ["error", "unix"],
     "no-unused-vars": "off",
     "max-len":  ["error", { "ignoreStrings": true, "code": 200 }],
     "no-param-reassign": "off",
