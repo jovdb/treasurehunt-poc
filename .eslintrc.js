@@ -27,7 +27,6 @@ module.exports = {
     "import/extensions": "off",
     "import/no-unresolved": "off",
     "import/prefer-default-export": "off",
-    "linebreak-style": ["error", "off"],
     "no-unused-vars": "off",
     "max-len":  ["error", { "ignoreStrings": true, "code": 200 }],
     "no-param-reassign": "off",
