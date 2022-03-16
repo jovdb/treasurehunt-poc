@@ -5,11 +5,14 @@
   "scripts": {
     "start": "vite",
     "start:https": "vite --host --https",
-    "build": "vite build --debug",
+    "build": "vite build",
     "serve": "vite preview --host --https",
     "eslint": "eslint . --ext .ts,.tsx",
     "eslint:fix": "eslint . --ext .ts,.tsx --fix",
-    "test": "jest"
+    "test": "jest",
+    "docker:create": "docker build -t treasurehunt .",
+    "docker:build": "docker run treasurehunt build",
+    "docker:run": "docker run -p 5000:5000 treasurehunt serve"
   },
   "license": "MIT",
   "devDependencies": {
