@@ -8,6 +8,7 @@ export default defineConfig({
     solidPlugin(),
     eslintPlugin({ cache: false }),
   ],
+  base: "./",
   build: {
     target: "esnext",
     polyfillDynamicImport: false,
